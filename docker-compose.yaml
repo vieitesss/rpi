@@ -1,0 +1,40 @@
+services:
+  #############
+  # Tailscale #
+  #############
+  vaultwarden-ts:
+    image: tailscale/tailscale:latest
+    hostname: vaultwarden
+    container_name: vaultwarden-ts
+    env_file: ".env"
+    environment:
+      - TS_AUTHKEY=${TAILSCALE_AUTH_KEY}
+      - TS_STATE_DIR=/var/lib/tailscale
+      - TS_SERVE_CONFIG=/config/vaultwarden.json
+      - "TS_EXTRA_ARGS=--advertise-tags=tag:homelab --reset"
+      - TS_USERSPACE=false
+    volumes:
+      - ${PWD}/tailscale:/config
+      - vaultwarden-ts:/var/lib/tailscale
+      - /dev/net/tun:/dev/net/tun
+    cap_add:
+      - net_admin
+      - sys_module
+    restart: unless-stopped
+
+  ########
+  # Apps #
+  ########
+  vaultwarden:
+    image: vaultwarden/server:latest
+    container_name: vaultwarden
+    restart: unless-stopped
+    environment:
+      DOMAIN: "https://vw.domain.tld"
+    volumes:
+      - vaultwarden-data:/data/
+    network_mode: service:vaultwarden-ts
+
+volumes:
+  vaultwarden-ts:
+  vaultwarden-data:
