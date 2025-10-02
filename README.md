@@ -94,7 +94,9 @@ just log -f
 - Via Tailscale: Connect to your services using their Tailscale hostnames
 - Check container names in `docker-compose.yaml` for service-specific details
 
-## Backup Setup (Optional but Recommended)
+## System Automation (Optional but Recommended)
+
+### Automated Backups
 
 See [BACKUP_SETUP.md](BACKUP_SETUP.md) for detailed instructions on:
 - Configuring Backblaze B2
@@ -107,6 +109,23 @@ cp backup.env.example backup.env
 chmod 600 backup.env
 vim backup.env  # Fill in your B2 credentials
 just backup     # Run first backup
+```
+
+### Systemd Services & Scripts
+
+See [SYSTEM_SETUP.md](SYSTEM_SETUP.md) for detailed setup of:
+- **Auto-start services on boot** - Docker services start automatically
+- **Network management** - Auto-switch between WiFi and Ethernet
+- **Automatic system updates** - Daily security updates
+- **Backup scripts** - Manual and automated backup tools
+
+Quick setup all automation:
+```bash
+# See SYSTEM_SETUP.md for full instructions
+sudo cp etc/systemd/system/*.service /etc/systemd/system/
+sudo cp etc/systemd/system/*.timer /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable rpi-services.service rpi-backup.timer manage-connection.timer
 ```
 
 ## Common Commands
@@ -195,13 +214,28 @@ See [BACKUP_SETUP.md](BACKUP_SETUP.md#troubleshooting)
 
 ```
 rpi/
-├── docker-compose.yaml    # Service definitions
-├── .env                   # Tailscale & service configuration (git-ignored)
-├── backup.env            # Backup credentials (git-ignored)
-├── justfile              # Command shortcuts
-├── scripts/              # Backup & restore scripts
-├── logs/                 # Backup logs (auto-created)
-└── tailscale/           # Tailscale config (auto-created)
+├── docker-compose.yaml           # Service definitions
+├── .env                          # Tailscale & service configuration (git-ignored)
+├── backup.env                    # Backup credentials (git-ignored)
+├── justfile                      # Command shortcuts
+├── scripts/                      # Automation scripts
+│   ├── backup.sh                 # Backup all Docker volumes
+│   ├── restore.sh                # Interactive restore helper
+│   └── manage-connection.sh      # WiFi/Ethernet auto-switching
+├── etc/                          # System configuration files
+│   ├── systemd/system/           # Systemd service units
+│   │   ├── rpi-services.service  # Auto-start Docker services
+│   │   ├── rpi-backup.service    # Backup service
+│   │   ├── rpi-backup.timer      # Daily backup timer
+│   │   ├── manage-connection.service
+│   │   └── manage-connection.timer
+│   └── apt/apt.conf.d/           # APT configuration
+│       └── 02periodic            # Auto-update settings
+├── logs/                         # Backup logs (auto-created)
+├── tailscale/                    # Tailscale config (auto-created)
+├── README.md                     # This file
+├── BACKUP_SETUP.md              # Backup configuration guide
+└── SYSTEM_SETUP.md              # System automation guide
 ```
 
 ## License
