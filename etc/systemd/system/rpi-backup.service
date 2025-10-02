@@ -1,0 +1,18 @@
+[Unit]
+Description=Raspberry Pi Docker Volumes Backup
+After=docker.service rpi-services.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+WorkingDirectory=/home/vieitesrpi/rpi
+ExecStart=/bin/bash /home/vieitesrpi/rpi/scripts/backup.sh
+User=vieitesrpi
+Group=vieitesrpi
+
+# Security settings
+PrivateTmp=yes
+NoNewPrivileges=yes
+
+[Install]
+WantedBy=multi-user.target

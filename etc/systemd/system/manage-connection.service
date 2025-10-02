@@ -1,0 +1,11 @@
+[Unit]
+Description=Manage WiFi based on Ethernet connection
+After=network.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/manage-connection.sh
+
+[Install]
+WantedBy=multi-user.target
+

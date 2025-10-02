@@ -1,1 +1,4 @@
 .env
+backup.env
+logs/
+temp-backup/
