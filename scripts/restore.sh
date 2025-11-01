@@ -5,10 +5,10 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
 
-if [ -f "$PROJECT_DIR/backup.env" ]; then
-    source "$PROJECT_DIR/backup.env"
+if [ -f "$PROJECT_DIR/.backup.env" ]; then
+    source "$PROJECT_DIR/.backup.env"
 else
-    echo "Error: backup.env not found"
+    echo "Error: .backup.env not found"
     exit 1
 fi
 

@@ -28,9 +28,9 @@ sudo apt install restic
 ### 3. Configure Backup Credentials
 ```bash
 cd ~/rpi
-cp backup.env.example backup.env
-chmod 600 backup.env
-nano backup.env
+cp .backup.env.example .backup.env
+chmod 600 .backup.env
+nano .backup.env
 ```
 
 Fill in:
@@ -105,7 +105,7 @@ just bl
 just d vaultwarden
 
 # 3. Restore to temporary location
-source backup.env
+source .backup.env
 export B2_ACCOUNT_ID B2_ACCOUNT_KEY RESTIC_REPOSITORY RESTIC_PASSWORD
 restic restore latest --target /tmp/restore
 
@@ -151,7 +151,7 @@ sudo usermod -aG docker vieitesrpi
 
 ### Check backup integrity
 ```bash
-source backup.env
+source .backup.env
 export B2_ACCOUNT_ID B2_ACCOUNT_KEY RESTIC_REPOSITORY RESTIC_PASSWORD
 restic check
 ```
@@ -159,7 +159,7 @@ restic check
 ### Repository locked
 ```bash
 # If backup was interrupted
-source backup.env
+source .backup.env
 export B2_ACCOUNT_ID B2_ACCOUNT_KEY RESTIC_REPOSITORY RESTIC_PASSWORD
 restic unlock
 ```

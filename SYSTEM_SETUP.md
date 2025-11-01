@@ -149,10 +149,10 @@ bash scripts/backup.sh
 # or
 just backup
 
-# Required: backup.env must be configured first
+# Required: .backup.env must be configured first
 ```
 
-**Environment Variables (in backup.env):**
+**Environment Variables (in .backup.env):**
 - `B2_ACCOUNT_ID` - Backblaze B2 account ID
 - `B2_ACCOUNT_KEY` - Backblaze B2 application key
 - `RESTIC_REPOSITORY` - Restic repository path (e.g., `b2:bucket-name:/path`)

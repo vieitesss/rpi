@@ -105,9 +105,9 @@ See [BACKUP_SETUP.md](BACKUP_SETUP.md) for detailed instructions on:
 
 Quick setup:
 ```bash
-cp backup.env.example backup.env
-chmod 600 backup.env
-vim backup.env  # Fill in your B2 credentials
+cp backup.env.example .backup.env
+chmod 600 .backup.env
+vim .backup.env  # Fill in your B2 credentials
 just backup     # Run first backup
 ```
 
@@ -204,7 +204,7 @@ See [BACKUP_SETUP.md](BACKUP_SETUP.md#troubleshooting)
 
 ## Security Notes
 
-- Never commit `.env` or `backup.env` files (they contain secrets)
+- Never commit `.env` or `.backup.env` files (they contain secrets)
 - Use strong passwords for all services and Restic backups
 - Keep your Raspberry Pi OS updated
 - Regularly test your backup restores
@@ -216,7 +216,7 @@ See [BACKUP_SETUP.md](BACKUP_SETUP.md#troubleshooting)
 rpi/
 ├── docker-compose.yaml           # Service definitions
 ├── .env                          # Tailscale & service configuration (git-ignored)
-├── backup.env                    # Backup credentials (git-ignored)
+├── .backup.env                    # Backup credentials (git-ignored)
 ├── justfile                      # Command shortcuts
 ├── scripts/                      # Automation scripts
 │   ├── backup.sh                 # Backup all Docker volumes

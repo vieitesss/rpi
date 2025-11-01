@@ -1,4 +1,4 @@
 .env
-backup.env
+.backup.env
 logs/
 temp-backup/

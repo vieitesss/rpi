@@ -65,13 +65,27 @@ filebrowser:
 
 The backup system uses Restic with Backblaze B2 for encrypted offsite backups:
 
-1. **Discovery**: `scripts/backup.sh` auto-discovers all Docker volumes
-2. **Export**: Each volume copied to `/tmp/rpi-volumes-backup/<volume-name>` using Alpine containers
-3. **Backup**: Restic creates encrypted snapshot and uploads to B2
-4. **Retention**: Automatically prunes old snapshots (30 daily, 8 weekly, 12 monthly)
-5. **Verification**: Weekly integrity checks on day 7, 14, 21, 28
+**What gets backed up:**
+- All Docker volumes (auto-discovered)
+- Media folder: `/media/vieitesrpi/vieitesss/filebrowser`
+- Database: `filebrowser/database.db`
 
-**Credentials**: Stored in `backup.env` (git-ignored), sourced by scripts
+**Backup process:**
+1. **Discovery**: Auto-discovers all Docker volumes
+2. **Export**: Volumes copied to `/tmp/rpi-full-backup/docker-volumes/<volume-name>` using Alpine containers
+3. **Media/DB**: Copies media folder and database to temp backup location
+4. **Backup**: Restic creates encrypted, compressed, deduplicated snapshot and uploads to B2
+5. **Retention**: Automatically prunes old snapshots (30 daily, 8 weekly, 12 monthly)
+6. **Verification**: Weekly integrity checks on days divisible by 7 (checks 5% of data)
+7. **Stats**: Shows repository size to monitor B2 10GB free tier usage
+
+**Compression & Deduplication:**
+- Restic automatically compresses all data
+- Deduplication: identical chunks stored only once across all backups
+- Incremental: only changed data uploaded after first backup
+- This dramatically reduces storage usage, especially for similar/unchanged files
+
+**Credentials**: Stored in `.backup.env` (git-ignored), sourced by scripts
 
 ### Systemd Automation
 
@@ -96,9 +110,9 @@ When adding a new Docker service:
 ## Environment Files
 
 - `.env` - Tailscale auth key and service-specific config (git-ignored)
-- `backup.env` - Backblaze B2 credentials and Restic settings (git-ignored)
+- `.backup.env` - Backblaze B2 credentials and Restic settings (git-ignored)
 - `example.env` - Template for `.env`
-- `backup.env.example` - Template for `backup.env`
+- `backup.env.example` - Template for `.backup.env`
 
 Never commit actual credential files.
 
@@ -113,20 +127,35 @@ Never commit actual credential files.
 
 ## Restoration Process
 
-To restore a service from backup:
+To restore from backup:
 
+### Restore Docker Volume:
 1. List snapshots: `just bl`
 2. Stop service: `just down <service>`
-3. Restore to temp: `restic restore <snapshot-id> --target /tmp/restore`
+3. Restore to temp: `restic restore latest --target /tmp/restore`
 4. Copy to volume:
    ```bash
    docker run --rm \
      -v <volume-name>:/target \
-     -v /tmp/restore/<volume-name>:/source \
+     -v /tmp/restore/docker-volumes/<volume-name>:/source \
      alpine sh -c 'rm -rf /target/* && cp -a /source/. /target/'
    ```
 5. Restart: `just up -d <service>`
 6. Cleanup: `rm -rf /tmp/restore`
+
+### Restore Media Folder:
+```bash
+restic restore latest --target /tmp/restore
+sudo rsync -a /tmp/restore/media-filebrowser/ /media/vieitesrpi/vieitesss/filebrowser/
+rm -rf /tmp/restore
+```
+
+### Restore Database:
+```bash
+restic restore latest --target /tmp/restore
+cp /tmp/restore/filebrowser-db/database.db filebrowser/database.db
+rm -rf /tmp/restore
+```
 
 ## Systemd Service Setup
 

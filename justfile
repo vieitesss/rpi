@@ -22,7 +22,7 @@ backup:
     bash scripts/backup.sh
 
 backup-list:
-    bash -c 'source backup.env && export B2_ACCOUNT_ID B2_ACCOUNT_KEY RESTIC_REPOSITORY RESTIC_PASSWORD && restic snapshots'
+    bash -c 'source .backup.env && export B2_ACCOUNT_ID B2_ACCOUNT_KEY RESTIC_REPOSITORY RESTIC_PASSWORD && restic snapshots'
 
 backup-restore:
     bash scripts/restore.sh
