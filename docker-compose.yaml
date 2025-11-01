@@ -2,25 +2,22 @@ services:
   #############
   # Tailscale #
   #############
-  vaultwarden-ts:
+  filebrowser-ts: &ts
     image: tailscale/tailscale:latest
-    hostname: vaultwarden
-    container_name: vaultwarden-ts
-    env_file: ".env"
     environment:
       - TS_AUTHKEY=${TAILSCALE_AUTH_KEY}
       - TS_STATE_DIR=/var/lib/tailscale
-      - TS_SERVE_CONFIG=/config/vaultwarden.json
+      - TS_SERVE_CONFIG=/config/https.json
       - "TS_EXTRA_ARGS=--advertise-tags=tag:homelab --reset"
       - TS_USERSPACE=false
     volumes:
       - ${PWD}/tailscale:/config
-      - vaultwarden-ts:/var/lib/tailscale
       - /dev/net/tun:/dev/net/tun
     cap_add:
       - net_admin
       - sys_module
-    restart: unless-stopped
+
+  vaultwarden-ts: *ts
 
   ########
   # Apps #
@@ -35,6 +32,20 @@ services:
       - vaultwarden-data:/data/
     network_mode: service:vaultwarden-ts
 
+  filebrowser:
+    image: gtstef/filebrowser:beta
+    container_name: filebrowser
+    restart: unless-stopped
+    environment:
+      FILEBROWSER_CONFIG: "data/config.yaml"
+      FILEBROWSER_ADMIN_PASSWORD: ${FILEBROWSER_ADMIN_PASS}
+      TZ: "Europe/Madrid"
+    volumes:
+      - /media/vieitesrpi/vieitesss/filebrowser:/folder
+      - ./filebrowser:/home/filebrowser/data
+    network_mode: service:filebrowser-ts
+
 volumes:
   vaultwarden-ts:
   vaultwarden-data:
+  filebrowser-ts:

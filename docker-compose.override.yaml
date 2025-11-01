@@ -1,0 +1,11 @@
+services:
+  filebrowser-ts:
+    hostname: filebrowser
+    container_name: filebrowser-ts
+    volumes:
+      - filebrowser-ts:/var/lib/tailscale
+  vaultwarden-ts:
+    hostname: vaultwarden
+    container_name: vaultwarden-ts
+    volumes:
+      - vaultwarden-ts:/var/lib/tailscale

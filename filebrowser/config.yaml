@@ -1,0 +1,7 @@
+server:
+  sources:
+    - path: /folder
+      config:
+        defaultEnabled: true
+auth:
+  adminUsername: admin
