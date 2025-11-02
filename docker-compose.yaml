@@ -7,18 +7,16 @@ services:
     environment:
       - TS_AUTHKEY=${TAILSCALE_AUTH_KEY}
       - TS_STATE_DIR=/var/lib/tailscale
-      - TS_SERVE_CONFIG=/config/https.json
-      - "TS_EXTRA_ARGS=--advertise-tags=tag:homelab --reset"
       - TS_USERSPACE=false
-    volumes:
-      - ${PWD}/tailscale:/config
-      - /dev/net/tun:/dev/net/tun
+      - "TS_EXTRA_ARGS=--advertise-tags=tag:homelab --reset"
     cap_add:
       - net_admin
       - sys_module
+    volumes:
+      - ${PWD}/tailscale:/config
+      - /dev/net/tun:/dev/net/tun
 
   vaultwarden-ts: *ts
-  trilium-ts: *ts
 
   ########
   # Apps #
@@ -28,14 +26,13 @@ services:
     container_name: vaultwarden
     restart: unless-stopped
     environment:
-      DOMAIN: "https://vw.domain.tld"
+      DOMAIN: "https://vaultwarden.burro-ph.ts.net"
     volumes:
       - vaultwarden-data:/data/
     network_mode: service:vaultwarden-ts
 
   filebrowser:
     image: gtstef/filebrowser:beta
-    container_name: filebrowser
     restart: unless-stopped
     environment:
       FILEBROWSER_CONFIG: "data/config.yaml"
@@ -46,18 +43,7 @@ services:
       - ./filebrowser:/home/filebrowser/data
     network_mode: service:filebrowser-ts
 
-  trilium:
-    image: triliumnext/trilium:stable
-    environment:
-      TRILIUM_NETWORK_PORT: "80"
-    volumes:
-      - trilium-data:/home/node/trilium-data
-      - /media/vieitesrpi/vieitesss/filebrowser/dani:/media/vieitesrpi/dani
-    network_mode: service:trilium-ts
-
 volumes:
   vaultwarden-ts:
   vaultwarden-data:
-  trilium-ts:
-  trilium-data:
   filebrowser-ts:

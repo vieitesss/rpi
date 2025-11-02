@@ -2,15 +2,15 @@ services:
   filebrowser-ts:
     hostname: filebrowser
     container_name: filebrowser-ts
+    environment:
+      - TS_SERVE_CONFIG=/config/port-80.json
     volumes:
       - filebrowser-ts:/var/lib/tailscale
+
   vaultwarden-ts:
     hostname: vaultwarden
     container_name: vaultwarden-ts
+    environment:
+      - TS_SERVE_CONFIG=/config/port-80.json
     volumes:
       - vaultwarden-ts:/var/lib/tailscale
-  trilium-ts:
-    hostname: trilium
-    container_name: trilium-ts
-    volumes:
-      - trilium-ts:/var/lib/tailscale
