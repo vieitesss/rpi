@@ -18,6 +18,7 @@ services:
       - sys_module
 
   vaultwarden-ts: *ts
+  trilium-ts: *ts
 
   ########
   # Apps #
@@ -45,7 +46,18 @@ services:
       - ./filebrowser:/home/filebrowser/data
     network_mode: service:filebrowser-ts
 
+  trilium:
+    image: triliumnext/trilium:stable
+    environment:
+      TRILIUM_NETWORK_PORT: "80"
+    volumes:
+      - trilium-data:/home/node/trilium-data
+      - /media/vieitesrpi/vieitesss/filebrowser/dani:/media/vieitesrpi/dani
+    network_mode: service:trilium-ts
+
 volumes:
   vaultwarden-ts:
   vaultwarden-data:
+  trilium-ts:
+  trilium-data:
   filebrowser-ts:

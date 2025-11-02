@@ -111,6 +111,7 @@ When adding a new Docker service:
 
 - `.env` - Tailscale auth key and service-specific config (git-ignored)
 - `.backup.env` - Backblaze B2 credentials and Restic settings (git-ignored)
+  - Optional: `BACKUP_MEDIA_PATH` to override default media folder location
 - `example.env` - Template for `.env`
 - `backup.env.example` - Template for `.backup.env`
 

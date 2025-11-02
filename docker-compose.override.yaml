@@ -9,3 +9,8 @@ services:
     container_name: vaultwarden-ts
     volumes:
       - vaultwarden-ts:/var/lib/tailscale
+  trilium-ts:
+    hostname: trilium
+    container_name: trilium-ts
+    volumes:
+      - trilium-ts:/var/lib/tailscale
