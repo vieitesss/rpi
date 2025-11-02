@@ -13,16 +13,29 @@ else
 fi
 
 # Export B2 credentials for restic
-export B2_ACCOUNT_ID
-export B2_ACCOUNT_KEY
-export RESTIC_REPOSITORY
-export RESTIC_PASSWORD
+export B2_ACCOUNT_ID B2_ACCOUNT_KEY RESTIC_REPOSITORY RESTIC_PASSWORD
 
+# Configuration
+BACKUP_TEMP="/tmp/rpi-full-backup"
+MEDIA_SOURCE="${BACKUP_MEDIA_PATH:-/media/vieitesrpi/vieitesss/filebrowser}"
 LOG_FILE="$PROJECT_DIR/logs/backup-$(date +%Y%m%d-%H%M%S).log"
 mkdir -p "$PROJECT_DIR/logs"
 
+# Helper functions
 log() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] $*" | tee -a "$LOG_FILE"
+}
+
+cleanup_temp_dir() {
+    [ -d "$1" ] && docker run --rm -v "$1:/cleanup" alpine sh -c "rm -rf /cleanup/*" 2>/dev/null || true
+    rm -rf "$1" 2>/dev/null || true
+}
+
+log_size() {
+    local path=$1
+    local label=$2
+    local size=$(du -sh "$path" | cut -f1)
+    log "$label size: $size"
 }
 
 log "=== Starting Full Backup (Docker Volumes + Media + Database) ==="
@@ -40,9 +53,9 @@ if ! restic snapshots &> /dev/null; then
     restic init
 fi
 
-# Create temporary backup directory in /tmp for clean paths
-BACKUP_TEMP="/tmp/rpi-full-backup"
-rm -rf "$BACKUP_TEMP"
+# Prepare temporary backup directory
+log "Preparing backup directory..."
+cleanup_temp_dir "$BACKUP_TEMP"
 mkdir -p "$BACKUP_TEMP"
 
 # ===========================
@@ -63,12 +76,12 @@ else
         VOLUME_DIR="$BACKUP_TEMP/docker-volumes/$volume"
         mkdir -p "$VOLUME_DIR"
 
-        # Use a temporary container to copy volume data
+        # Use a temporary container to copy volume data and fix permissions
         docker run --rm \
             -v "$volume:/source:ro" \
             -v "$VOLUME_DIR:/backup" \
             alpine \
-            sh -c "cp -a /source/. /backup/" || {
+            sh -c "cp -a /source/. /backup/ && chmod -R a+rX /backup/" || {
                 log "Warning: Failed to backup volume $volume"
                 continue
             }
@@ -78,21 +91,13 @@ fi
 # ===========================
 # 2. Backup Media Folder
 # ===========================
-MEDIA_SOURCE="/media/vieitesrpi/vieitesss/filebrowser"
 if [ -d "$MEDIA_SOURCE" ]; then
     log "Backing up media folder: $MEDIA_SOURCE"
     MEDIA_DEST="$BACKUP_TEMP/media-filebrowser"
     mkdir -p "$MEDIA_DEST"
 
-    # Copy with rsync for efficiency
-    if command -v rsync &> /dev/null; then
-        rsync -a "$MEDIA_SOURCE/" "$MEDIA_DEST/" 2>&1 | tee -a "$LOG_FILE"
-    else
-        cp -a "$MEDIA_SOURCE/." "$MEDIA_DEST/" 2>&1 | tee -a "$LOG_FILE"
-    fi
-
-    SIZE=$(du -sh "$MEDIA_DEST" | cut -f1)
-    log "Media folder size: $SIZE"
+    cp -a "$MEDIA_SOURCE/." "$MEDIA_DEST/" 2>&1 | tee -a "$LOG_FILE"
+    log_size "$MEDIA_DEST" "Media folder"
 else
     log "Warning: Media folder not found at $MEDIA_SOURCE"
 fi
@@ -105,9 +110,7 @@ if [ -f "$DB_SOURCE" ]; then
     log "Backing up database: $DB_SOURCE"
     mkdir -p "$BACKUP_TEMP/filebrowser-db"
     cp "$DB_SOURCE" "$BACKUP_TEMP/filebrowser-db/database.db"
-
-    SIZE=$(du -sh "$DB_SOURCE" | cut -f1)
-    log "Database size: $SIZE"
+    log_size "$DB_SOURCE" "Database"
 else
     log "Warning: Database not found at $DB_SOURCE"
 fi
@@ -115,16 +118,9 @@ fi
 # ===========================
 # 4. Create Restic Backup
 # ===========================
-log "Creating restic snapshot with compression..."
-
-# Restic automatically:
-# - Compresses data (enabled by default)
-# - Deduplicates chunks (same data stored only once)
-# - Only uploads changed chunks (incremental backups)
-
+log "Creating restic snapshot..."
 restic backup "$BACKUP_TEMP" \
-    --tag "rpi-full-backup" \
-    --tag "automated" \
+    --tag "rpi-full-backup,automated" \
     --host "raspberry-pi" \
     --exclude-caches \
     --one-file-system 2>&1 | tee -a "$LOG_FILE"
@@ -133,19 +129,15 @@ restic backup "$BACKUP_TEMP" \
 # 5. Cleanup and Stats
 # ===========================
 log "Cleaning up temporary files..."
-rm -rf "$BACKUP_TEMP"
-
-# Show repository statistics
-log "Repository statistics:"
-restic stats latest --mode raw-data 2>&1 | tee -a "$LOG_FILE" || log "Stats unavailable"
+cleanup_temp_dir "$BACKUP_TEMP"
 
 # Apply retention policy
 log "Applying retention policy..."
 restic forget \
     --tag "rpi-full-backup" \
-    --keep-daily "${BACKUP_RETENTION_DAYS:-30}" \
-    --keep-weekly "${BACKUP_RETENTION_WEEKS:-8}" \
-    --keep-monthly "${BACKUP_RETENTION_MONTHS:-12}" \
+    --keep-daily "${BACKUP_RETENTION_DAYS:-7}" \
+    --keep-weekly "${BACKUP_RETENTION_WEEKS:-4}" \
+    --keep-monthly "${BACKUP_RETENTION_MONTHS:-6}" \
     --prune 2>&1 | tee -a "$LOG_FILE"
 
 # Verify backup integrity (weekly on days divisible by 7)
@@ -154,13 +146,11 @@ if [ $(($(date +%d) % 7)) -eq 0 ]; then
     restic check --read-data-subset=5% 2>&1 | tee -a "$LOG_FILE"
 fi
 
-log "=== Full backup completed successfully ==="
+# Show repository size to monitor B2 usage
+log "Repository size:"
+restic stats --mode restore-size 2>&1 | tee -a "$LOG_FILE"
 
-# Show final repository size to monitor B2 usage
-log "Checking total repository size..."
-restic stats --mode restore-size 2>&1 | tee -a "$LOG_FILE" || log "Size check unavailable"
+log "=== Backup completed successfully ==="
 
 # Clean up old log files (keep last 30 days)
-find "$PROJECT_DIR/logs" -name "backup-*.log" -mtime +30 -delete
-
-exit 0
+find "$PROJECT_DIR/logs" -name "backup-*.log" -mtime +30 -delete 2>/dev/null || true
