@@ -4,6 +4,7 @@ services:
     container_name: filebrowser-ts
     environment:
       - TS_SERVE_CONFIG=/config/port-80.json
+      - "TS_EXTRA_ARGS=--advertise-tags=tag:shared --reset"
     volumes:
       - filebrowser-ts:/var/lib/tailscale
 
@@ -12,5 +13,6 @@ services:
     container_name: vaultwarden-ts
     environment:
       - TS_SERVE_CONFIG=/config/port-80.json
+      - "TS_EXTRA_ARGS=--advertise-tags=tag:private --reset"
     volumes:
       - vaultwarden-ts:/var/lib/tailscale
