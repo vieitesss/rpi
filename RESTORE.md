@@ -1,113 +1,115 @@
 # Backup Restore Guide
 
-Complete guide for restoring backups from Backblaze B2 using Restic.
+Complete guide for restoring backups from Backblaze B2 using the automated restore script.
+
+## Quick Start
+
+```bash
+# Interactive restore menu (easiest way)
+just restore
+
+# List available backups
+just restore-list
+
+# Restore vaultwarden volume
+just restore-volume rpi_vaultwarden-data latest vaultwarden
+
+# Restore all volumes
+just restore-all-volumes
+
+# Restore media folder
+just restore-media
+```
+
+---
 
 ## Table of Contents
 - [Prerequisites](#prerequisites)
-- [Listing Available Backups](#listing-available-backups)
-- [Restore Scenarios](#restore-scenarios)
-  - [Restore a Single Docker Volume](#restore-a-single-docker-volume)
-  - [Restore All Docker Volumes](#restore-all-docker-volumes)
-  - [Restore Media Folder](#restore-media-folder)
-  - [Restore Filebrowser Database](#restore-filebrowser-database)
-  - [Full System Restore](#full-system-restore)
+- [Using the Restore Script](#using-the-restore-script)
+- [Common Restore Scenarios](#common-restore-scenarios)
+- [Command Reference](#command-reference)
 - [Troubleshooting](#troubleshooting)
 
 ---
 
 ## Prerequisites
 
-1. **Backup credentials configured** - Ensure `.backup.env` exists with correct B2 credentials
-2. **Docker running** - Services should be stopped before restoring their volumes
-3. **Sufficient disk space** - At least 2x the backup size for temporary extraction
+1. **Backup credentials configured** - `.backup.env` file exists with B2 credentials
+2. **Docker running** - Services will be automatically stopped/started
+3. **Sufficient disk space** - Temp files automatically cleaned up
 
 ---
 
-## Listing Available Backups
+## Using the Restore Script
 
-### View all snapshots
+The restore script (`scripts/restore.sh`) provides two modes:
+
+### Interactive Mode
+
+Run without arguments to get an interactive menu:
+
 ```bash
-just bl
-# OR
-source .backup.env && export B2_ACCOUNT_ID B2_ACCOUNT_KEY RESTIC_REPOSITORY RESTIC_PASSWORD && restic snapshots
+just restore
+# or: just br
+# or: bash scripts/restore.sh
 ```
 
-**Output example:**
+**Menu options:**
 ```
-ID        Time                 Host          Tags                       Paths
------------------------------------------------------------------------------------------------
-062715bd  2025-11-01 19:58:36  raspberry-pi  rpi-full-backup,automated  /tmp/rpi-full-backup
-e4c13038  2025-11-04 14:57:48  raspberry-pi  rpi-full-backup,automated  /tmp/rpi-full-backup
+1) List available snapshots
+2) Restore single Docker volume
+3) Restore all Docker volumes
+4) Restore media folder (merge)
+5) Restore media folder (overwrite)
+6) Restore filebrowser database
+7) List volumes in backup
+0) Exit
 ```
 
-### Inspect a specific snapshot
+The script will guide you through:
+- Selecting a snapshot
+- Choosing what to restore
+- Confirming destructive actions
+- Automatic service stop/start
+
+### Command-Line Mode
+
+For automation or quick restores, use commands directly:
+
 ```bash
-source .backup.env && export B2_ACCOUNT_ID B2_ACCOUNT_KEY RESTIC_REPOSITORY RESTIC_PASSWORD && restic ls <SNAPSHOT_ID>
-
-# Example: List contents of latest backup
-source .backup.env && export B2_ACCOUNT_ID B2_ACCOUNT_KEY RESTIC_REPOSITORY RESTIC_PASSWORD && restic ls latest
+bash scripts/restore.sh [command] [options]
 ```
 
-### Find a specific volume in backups
-```bash
-source .backup.env && export B2_ACCOUNT_ID B2_ACCOUNT_KEY RESTIC_REPOSITORY RESTIC_PASSWORD && restic ls <SNAPSHOT_ID> | grep vaultwarden
-```
+See [Command Reference](#command-reference) for all available commands.
 
 ---
 
-## Restore Scenarios
+## Common Restore Scenarios
 
 ### Restore a Single Docker Volume
 
-**Use case:** Restore a specific volume (e.g., vaultwarden data was accidentally deleted)
+**Use case:** Vaultwarden data was deleted or corrupted
 
-**Steps:**
+```bash
+# Interactive mode
+just restore
+# Select option 2, enter snapshot ID and volume name
 
-1. **Stop the service using the volume:**
-   ```bash
-   docker compose stop vaultwarden
-   ```
+# Command-line mode
+just restore-volume rpi_vaultwarden-data
+# With service auto-restart:
+just restore-volume rpi_vaultwarden-data latest vaultwarden
+# From specific snapshot:
+just restore-volume rpi_vaultwarden-data 062715bd vaultwarden
+```
 
-2. **Restore backup to temporary location:**
-   ```bash
-   mkdir -p /tmp/restore
-   source .backup.env && export B2_ACCOUNT_ID B2_ACCOUNT_KEY RESTIC_REPOSITORY RESTIC_PASSWORD
-   restic restore latest --target /tmp/restore
-   ```
-
-   > **Note:** Replace `latest` with a specific snapshot ID (e.g., `062715bd`) if needed
-
-3. **Copy restored data to Docker volume:**
-   ```bash
-   # For vaultwarden-data volume:
-   docker run --rm \
-     -v rpi_vaultwarden-data:/target \
-     -v /tmp/restore/tmp/rpi-full-backup/docker-volumes/rpi_vaultwarden-data:/source \
-     alpine sh -c 'rm -rf /target/* && cp -a /source/. /target/'
-   ```
-
-   **Generic template:**
-   ```bash
-   docker run --rm \
-     -v <VOLUME_NAME>:/target \
-     -v /tmp/restore/tmp/rpi-full-backup/docker-volumes/<VOLUME_NAME>:/source \
-     alpine sh -c 'rm -rf /target/* && cp -a /source/. /target/'
-   ```
-
-4. **Restart the service:**
-   ```bash
-   docker compose start vaultwarden
-   ```
-
-5. **Verify service is working:**
-   ```bash
-   docker logs vaultwarden --tail 20
-   ```
-
-6. **Clean up:**
-   ```bash
-   rm -rf /tmp/restore
-   ```
+**What happens:**
+1. ✅ Service stopped automatically (if specified)
+2. ✅ Snapshot downloaded and extracted
+3. ✅ Volume validated (warns if empty)
+4. ✅ Data copied to Docker volume
+5. ✅ Service restarted and logs shown
+6. ✅ Temp files cleaned up
 
 ---
 
@@ -115,46 +117,24 @@ source .backup.env && export B2_ACCOUNT_ID B2_ACCOUNT_KEY RESTIC_REPOSITORY REST
 
 **Use case:** System failure, need to restore all services
 
-**Steps:**
+```bash
+# Interactive mode - safest
+just restore
+# Select option 3
 
-1. **Stop all services:**
-   ```bash
-   just down
-   # OR
-   docker compose down
-   ```
+# Command-line mode
+just restore-all-volumes
+# From specific snapshot:
+just restore-all-volumes 062715bd
+```
 
-2. **Restore backup:**
-   ```bash
-   mkdir -p /tmp/restore
-   source .backup.env && export B2_ACCOUNT_ID B2_ACCOUNT_KEY RESTIC_REPOSITORY RESTIC_PASSWORD
-   restic restore latest --target /tmp/restore
-   ```
-
-3. **List available volumes in backup:**
-   ```bash
-   ls /tmp/restore/tmp/rpi-full-backup/docker-volumes/
-   ```
-
-4. **Restore each volume:**
-   ```bash
-   # For each volume, run:
-   VOLUME_NAME="rpi_vaultwarden-data"
-   docker run --rm \
-     -v ${VOLUME_NAME}:/target \
-     -v /tmp/restore/tmp/rpi-full-backup/docker-volumes/${VOLUME_NAME}:/source \
-     alpine sh -c 'rm -rf /target/* && cp -a /source/. /target/'
-   ```
-
-5. **Restart services:**
-   ```bash
-   just up -d
-   ```
-
-6. **Clean up:**
-   ```bash
-   rm -rf /tmp/restore
-   ```
+**What happens:**
+1. ⚠️ Confirmation prompt (destructive operation)
+2. ✅ All services stopped
+3. ✅ Snapshot downloaded
+4. ✅ Each volume restored with progress
+5. ✅ All services restarted
+6. ✅ Service status shown
 
 ---
 
@@ -162,293 +142,364 @@ source .backup.env && export B2_ACCOUNT_ID B2_ACCOUNT_KEY RESTIC_REPOSITORY REST
 
 **Use case:** Accidentally deleted files from media folder
 
-**Steps:**
+**Merge Mode** (keeps existing files):
+```bash
+just restore-media
+# or: just restore-media latest merge
+```
 
-1. **Restore backup:**
-   ```bash
-   mkdir -p /tmp/restore
-   source .backup.env && export B2_ACCOUNT_ID B2_ACCOUNT_KEY RESTIC_REPOSITORY RESTIC_PASSWORD
-   restic restore latest --target /tmp/restore
-   ```
+**Overwrite Mode** (deletes files not in backup):
+```bash
+just restore-media latest overwrite
+```
 
-2. **Copy media folder:**
-   ```bash
-   # Full restore (overwrites existing):
-   rsync -av --delete /tmp/restore/tmp/rpi-full-backup/media-filebrowser/ /media/vieitesrpi/vieitesss/filebrowser/
-
-   # OR merge with existing files:
-   rsync -av /tmp/restore/tmp/rpi-full-backup/media-filebrowser/ /media/vieitesrpi/vieitesss/filebrowser/
-   ```
-
-   > **Note:** `--delete` removes files not in backup. Omit for merge mode.
-
-3. **Verify files:**
-   ```bash
-   ls -lah /media/vieitesrpi/vieitesss/filebrowser/
-   ```
-
-4. **Clean up:**
-   ```bash
-   rm -rf /tmp/restore
-   ```
+⚠️ Overwrite mode prompts for confirmation
 
 ---
 
 ### Restore Filebrowser Database
 
-**Use case:** Filebrowser database corrupted
+**Use case:** Database corrupted or wrong configuration
 
-**Steps:**
+```bash
+just restore-database
+# From specific snapshot:
+just restore-database 062715bd
+```
 
-1. **Stop filebrowser:**
-   ```bash
-   docker compose stop filebrowser
-   ```
-
-2. **Restore backup:**
-   ```bash
-   mkdir -p /tmp/restore
-   source .backup.env && export B2_ACCOUNT_ID B2_ACCOUNT_KEY RESTIC_REPOSITORY RESTIC_PASSWORD
-   restic restore latest --target /tmp/restore
-   ```
-
-3. **Copy database:**
-   ```bash
-   cp /tmp/restore/tmp/rpi-full-backup/filebrowser-db/database.db filebrowser/database.db
-   ```
-
-4. **Restart filebrowser:**
-   ```bash
-   docker compose start filebrowser
-   ```
-
-5. **Clean up:**
-   ```bash
-   rm -rf /tmp/restore
-   ```
+**What happens:**
+1. ✅ Filebrowser stopped
+2. ✅ Current database backed up to `database.db.backup-TIMESTAMP`
+3. ✅ New database restored
+4. ✅ Filebrowser restarted with logs
 
 ---
 
-### Full System Restore
+### List Volumes in Backup
 
-**Use case:** Complete system failure, restoring to new Raspberry Pi or fresh install
+**Use case:** Want to see what's available before restoring
 
-**Steps:**
+```bash
+just restore-list-volumes
+# From specific snapshot:
+just restore-list-volumes 062715bd
+```
 
-1. **Install prerequisites:**
-   ```bash
-   # Install Docker
-   curl -fsSL https://get.docker.com | sh
-   sudo usermod -aG docker $USER
+**Output example:**
+```
+Available volumes in backup:
+rpi_filebrowser-ts
+rpi_vaultwarden-data
+rpi_vaultwarden-ts
+```
 
-   # Install restic
-   sudo apt update && sudo apt install restic -y
-   ```
+---
 
-2. **Clone repository:**
-   ```bash
-   git clone <your-repo-url> ~/rpi
-   cd ~/rpi
-   ```
+## Command Reference
 
-3. **Configure backup credentials:**
-   ```bash
-   cp backup.env.example .backup.env
-   nano .backup.env  # Add your B2 credentials
-   ```
+### Justfile Commands (Recommended)
 
-4. **List available backups:**
-   ```bash
-   source .backup.env && export B2_ACCOUNT_ID B2_ACCOUNT_KEY RESTIC_REPOSITORY RESTIC_PASSWORD
-   restic snapshots
-   ```
+```bash
+# List operations
+just restore-list                           # List all snapshots
+just restore-list-volumes [snapshot]        # List volumes in backup
 
-5. **Choose and restore a snapshot:**
-   ```bash
-   # Use latest or specific snapshot ID
-   SNAPSHOT_ID="latest"
-   mkdir -p /tmp/restore
-   restic restore $SNAPSHOT_ID --target /tmp/restore
-   ```
+# Restore operations
+just restore                                # Interactive menu
+just restore-volume <name> [snapshot] [svc] # Restore single volume
+just restore-all-volumes [snapshot]         # Restore all volumes
+just restore-media [snapshot] [mode]        # Restore media folder
+just restore-database [snapshot]            # Restore database
+```
 
-6. **Create Docker volumes (if they don't exist):**
-   ```bash
-   docker volume create rpi_vaultwarden-data
-   docker volume create rpi_vaultwarden-ts
-   docker volume create rpi_filebrowser-ts
-   ```
+### Direct Script Usage
 
-7. **Restore Docker volumes:**
-   ```bash
-   for volume in rpi_vaultwarden-data rpi_vaultwarden-ts rpi_filebrowser-ts; do
-     echo "Restoring $volume..."
-     docker run --rm \
-       -v ${volume}:/target \
-       -v /tmp/restore/tmp/rpi-full-backup/docker-volumes/${volume}:/source \
-       alpine sh -c 'rm -rf /target/* && cp -a /source/. /target/'
-   done
-   ```
+```bash
+# Help
+bash scripts/restore.sh --help
 
-8. **Restore media folder:**
-   ```bash
-   sudo mkdir -p /media/vieitesrpi/vieitesss/filebrowser
-   sudo rsync -av /tmp/restore/tmp/rpi-full-backup/media-filebrowser/ /media/vieitesrpi/vieitesss/filebrowser/
-   ```
+# List snapshots
+bash scripts/restore.sh list
 
-9. **Restore filebrowser database:**
-   ```bash
-   mkdir -p filebrowser
-   cp /tmp/restore/tmp/rpi-full-backup/filebrowser-db/database.db filebrowser/database.db
-   ```
+# Restore volume
+bash scripts/restore.sh volume <name> [snapshot] [service]
+bash scripts/restore.sh volume rpi_vaultwarden-data
+bash scripts/restore.sh volume rpi_vaultwarden-data latest vaultwarden
 
-10. **Configure environment:**
-    ```bash
-    cp example.env .env
-    nano .env  # Add Tailscale key and other credentials
-    ```
+# Restore all volumes
+bash scripts/restore.sh all-volumes [snapshot]
 
-11. **Start services:**
-    ```bash
-    docker compose up -d
-    ```
+# Restore media
+bash scripts/restore.sh media [snapshot] [mode]
+bash scripts/restore.sh media latest merge
+bash scripts/restore.sh media latest overwrite
 
-12. **Verify services:**
-    ```bash
-    docker ps
-    docker logs vaultwarden --tail 20
-    docker logs rpi-filebrowser-1 --tail 20
-    ```
+# Restore database
+bash scripts/restore.sh database [snapshot]
 
-13. **Clean up:**
-    ```bash
-    rm -rf /tmp/restore
-    ```
+# List volumes
+bash scripts/restore.sh list-volumes [snapshot]
+```
+
+### Snapshot ID Usage
+
+- **`latest`** - Most recent backup (default)
+- **Specific ID** - e.g., `062715bd` (first 8 chars of snapshot ID)
+- Get IDs with: `just restore-list`
 
 ---
 
 ## Troubleshooting
 
-### Issue: "Permission denied" when accessing restored files
+### Volume is empty in backup
 
-**Cause:** Ownership/permissions mismatch after restore
+**Symptom:**
+```
+[WARNING] Volume rpi_vaultwarden-data is empty in backup!
+Continue anyway? (y/N):
+```
+
+**Cause:**
+- Old backup from before Nov 1, 2025 (script bug)
+- Service was never started when backup ran
+- Volume legitimately empty
 
 **Solution:**
 ```bash
-# For Docker volumes - use Alpine container to fix permissions:
+# List all snapshots and find a newer one
+just restore-list
+
+# Only use backups tagged "rpi-full-backup"
+# Backups tagged "rpi-services" may have empty volumes
+```
+
+---
+
+### Snapshot not found
+
+**Symptom:**
+```
+[ERROR] Snapshot ID 'abc123' not found
+```
+
+**Solution:**
+```bash
+# List available snapshots
+just restore-list
+
+# Use correct 8-char ID or 'latest'
+just restore-volume rpi_vaultwarden-data 062715bd
+```
+
+---
+
+### Service already stopped
+
+**Symptom:**
+```
+[WARNING] Service may not be running
+```
+
+**Cause:** Service was already stopped, not an error
+
+**Solution:** Script continues normally, no action needed
+
+---
+
+### Permission denied after restore
+
+**Symptom:** Service logs show permission errors after restore
+
+**Solution:**
+```bash
+# Fix volume permissions
+docker run --rm -v <volume-name>:/data alpine chmod -R a+rX /data
+
+# Example:
 docker run --rm -v rpi_vaultwarden-data:/data alpine chmod -R a+rX /data
 
-# For media folder:
-sudo chown -R vieitesrpi:vieitesrpi /media/vieitesrpi/vieitesss/filebrowser
-sudo chmod -R 755 /media/vieitesrpi/vieitesss/filebrowser
+# Restart service
+docker compose restart vaultwarden
 ```
 
 ---
 
-### Issue: "No snapshot found" error
+### Restore taking too long
 
-**Cause:** Wrong snapshot ID or credentials issue
+**Cause:** Large backup being downloaded from B2
+
+**Solution:**
+- Script shows progress automatically
+- Restoration speed depends on:
+  - Internet connection speed
+  - Backup size
+  - Backblaze B2 region
+- Be patient, script handles everything
+
+---
+
+### "No docker-volumes directory found"
+
+**Symptom:**
+```
+[WARNING] No docker-volumes directory found. This may be an old backup (pre-Nov 2025)
+```
+
+**Cause:** Backup from before November 1st, 2025 when script was fixed
 
 **Solution:**
 ```bash
-# Verify credentials are loaded:
-echo $RESTIC_REPOSITORY
+# Only use backups from Nov 1, 2025 or later
+just restore-list | grep "rpi-full-backup"
 
-# If empty, reload:
-source .backup.env && export B2_ACCOUNT_ID B2_ACCOUNT_KEY RESTIC_REPOSITORY RESTIC_PASSWORD
-
-# List all snapshots to get correct ID:
-restic snapshots
+# Look for tag "rpi-full-backup" not "rpi-services"
 ```
 
 ---
 
-### Issue: Volume already in use
+## Full System Restore (New Raspberry Pi)
 
-**Cause:** Service still running with volume mounted
+When restoring to a completely new system:
 
-**Solution:**
+### 1. Install Prerequisites
+
 ```bash
-# Stop specific service:
-docker compose stop <service-name>
+# Install Docker
+curl -fsSL https://get.docker.com | sh
+sudo usermod -aG docker $USER
+newgrp docker
 
-# OR stop all services:
-docker compose down
+# Install restic
+sudo apt update && sudo apt install restic -y
 
-# Then retry restore
+# Install just (optional but recommended)
+cargo install just
+# or: curl --proto '=https' --tlsv1.2 -sSf https://just.systems/install.sh | bash -s -- --to ~/bin
 ```
 
----
+### 2. Clone Repository
 
-### Issue: WAL checkpoint needed for SQLite databases
-
-**Cause:** SQLite database with Write-Ahead Log files not merged
-
-**Solution:**
 ```bash
-# After restoring, checkpoint the database:
-docker run --rm -v /tmp/restore/tmp/rpi-full-backup/docker-volumes/rpi_vaultwarden-data:/data alpine sh -c \
-  'apk add --no-cache sqlite && sqlite3 /data/db.sqlite3 "PRAGMA wal_checkpoint(TRUNCATE);"'
-
-# Then copy to volume:
-docker run --rm \
-  -v rpi_vaultwarden-data:/target \
-  -v /tmp/restore/tmp/rpi-full-backup/docker-volumes/rpi_vaultwarden-data:/source \
-  alpine sh -c 'rm -rf /target/* && cp -a /source/. /target/'
+git clone <your-repo-url> ~/rpi
+cd ~/rpi
 ```
 
----
+### 3. Configure Credentials
 
-### Issue: Backup is from old script (October 2025 or earlier)
-
-**Cause:** Old backup script had empty volume directories
-
-**Symptoms:** Restored volumes are empty even though backup succeeded
-
-**Solution:**
 ```bash
-# Only use backups from November 1st, 2025 or later:
-source .backup.env && export B2_ACCOUNT_ID B2_ACCOUNT_KEY RESTIC_REPOSITORY RESTIC_PASSWORD
-restic snapshots --tag rpi-full-backup
+# Backup credentials
+cp backup.env.example .backup.env
+nano .backup.env
+# Add: B2_ACCOUNT_ID, B2_ACCOUNT_KEY, RESTIC_REPOSITORY, RESTIC_PASSWORD
 
-# Use snapshots with tag "rpi-full-backup" only
+# Service credentials
+cp example.env .env
+nano .env
+# Add: TAILSCALE_AUTH_KEY, etc.
 ```
 
----
-
-## Quick Reference Commands
+### 4. Restore Everything
 
 ```bash
-# List backups
-just bl
+# List available backups
+just restore-list
 
-# Restore latest to temp
-mkdir -p /tmp/restore && source .backup.env && export B2_ACCOUNT_ID B2_ACCOUNT_KEY RESTIC_REPOSITORY RESTIC_PASSWORD && restic restore latest --target /tmp/restore
+# Use interactive restore for safety
+just restore
 
-# Copy volume to Docker
-docker run --rm -v <VOLUME>:/target -v /tmp/restore/tmp/rpi-full-backup/docker-volumes/<VOLUME>:/source alpine sh -c 'rm -rf /target/* && cp -a /source/. /target/'
+# Or restore all volumes in one command
+just restore-all-volumes
+```
 
-# Clean up
-rm -rf /tmp/restore
+### 5. Restore Media and Database
+
+```bash
+# Restore media folder
+sudo mkdir -p /media/vieitesrpi/vieitesss/filebrowser
+just restore-media
+
+# Restore database
+just restore-database
+```
+
+### 6. Verify Services
+
+```bash
+docker compose ps
+docker compose logs
 ```
 
 ---
 
 ## Important Notes
 
-1. **Always test restores** - Periodically test your backup restoration process
-2. **Stop services first** - Always stop services before restoring their volumes
-3. **Check backup date** - Verify the snapshot date matches your expectation
-4. **Backup before restore** - If restoring over existing data, back it up first
-5. **Use `latest` carefully** - `latest` refers to most recent snapshot, which may not be what you want
-6. **Old backups** - Backups before November 1st, 2025 may have empty Docker volumes due to script bug
-7. **Verify after restore** - Always check service logs and data after restoration
-8. **Clean up temp files** - Remove `/tmp/restore` to free disk space
+1. ✅ **Always use `just restore-list` first** to see available backups
+2. ✅ **Script handles all cleanup** automatically (no manual temp file removal)
+3. ✅ **Services auto-stop/start** when service name provided
+4. ✅ **Existing data backed up** before database restores
+5. ⚠️ **Old backups** (pre-Nov 2025) may have empty Docker volumes
+6. ⚠️ **Overwrite mode** deletes files not in backup (use with caution)
+7. 💡 **Interactive mode** is safest for beginners
+8. 💡 **Command-line mode** is best for automation/scripting
+
+---
+
+## Quick Reference Card
+
+```bash
+# MOST COMMON COMMANDS
+
+# Interactive menu (easiest)
+just restore
+
+# List backups
+just restore-list
+
+# Restore vaultwarden
+just restore-volume rpi_vaultwarden-data latest vaultwarden
+
+# Restore filebrowser
+just restore-volume rpi_filebrowser-ts latest filebrowser
+
+# Restore everything
+just restore-all-volumes
+
+# Restore media (safe merge)
+just restore-media
+
+# Check what's in backup
+just restore-list-volumes
+```
+
+---
+
+## Script Features
+
+### Automatic Features
+- ✅ Validates snapshot IDs
+- ✅ Stops/starts services
+- ✅ Checks for empty volumes
+- ✅ Backs up existing databases
+- ✅ Shows service logs after restore
+- ✅ Cleans up temp files on exit
+- ✅ Detects old/incompatible backups
+- ✅ Colored output for readability
+- ✅ Progress indication
+
+### Safety Features
+- ⚠️ Confirmation prompts for destructive actions
+- ⚠️ Warns about empty volumes
+- ⚠️ Validates volume exists in backup
+- ⚠️ Read-only mounts for source data
+- ⚠️ Automatic database backup before restore
 
 ---
 
 ## Additional Resources
 
-- **Restic documentation:** https://restic.readthedocs.io/
-- **Backup script:** `scripts/backup.sh`
+- **Interactive help:** `just restore` (select option 1)
+- **Command help:** `bash scripts/restore.sh --help`
+- **List commands:** `just -l`
 - **Project docs:** `CLAUDE.md`
-- **Justfile commands:** Run `just` to see all available commands
+- **Backup script:** `scripts/backup.sh`
+- **Restic docs:** https://restic.readthedocs.io/

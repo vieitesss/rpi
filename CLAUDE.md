@@ -21,11 +21,19 @@ docker compose up -d <service>    # Start specific service
 docker compose down <service>     # Stop specific service
 ```
 
-### Backup Operations
+### Backup & Restore Operations
 ```bash
+# Backup
 just b              # Run manual backup
 just bl             # List all backups
-just br             # Interactive restore helper
+
+# Restore (see RESTORE.md for details)
+just br             # Interactive restore menu
+just restore-list   # List snapshots
+just restore-volume rpi_vaultwarden-data latest vaultwarden
+just restore-all-volumes
+just restore-media
+just restore-database
 ```
 
 ### System Management
@@ -222,38 +230,29 @@ Never commit actual credential files.
 
 For detailed restore instructions, see **[RESTORE.md](RESTORE.md)**.
 
-**Quick restore examples:**
+**Automated restore script available:**
 
-### Restore a Docker Volume:
 ```bash
-# List backups
-just bl
+# Interactive restore menu (easiest)
+just restore
 
-# Stop service
-docker compose stop vaultwarden
+# List available backups
+just restore-list
 
-# Restore and copy to volume
-mkdir -p /tmp/restore
-source .backup.env && export B2_ACCOUNT_ID B2_ACCOUNT_KEY RESTIC_REPOSITORY RESTIC_PASSWORD
-restic restore latest --target /tmp/restore
-docker run --rm \
-  -v rpi_vaultwarden-data:/target \
-  -v /tmp/restore/tmp/rpi-full-backup/docker-volumes/rpi_vaultwarden-data:/source \
-  alpine sh -c 'rm -rf /target/* && cp -a /source/. /target/'
-
-# Restart and cleanup
-docker compose start vaultwarden
-rm -rf /tmp/restore
+# Quick restore commands
+just restore-volume rpi_vaultwarden-data latest vaultwarden
+just restore-all-volumes
+just restore-media
+just restore-database
 ```
 
-### Restore Media Folder:
-```bash
-mkdir -p /tmp/restore
-source .backup.env && export B2_ACCOUNT_ID B2_ACCOUNT_KEY RESTIC_REPOSITORY RESTIC_PASSWORD
-restic restore latest --target /tmp/restore
-rsync -av /tmp/restore/tmp/rpi-full-backup/media-filebrowser/ /media/vieitesrpi/vieitesss/filebrowser/
-rm -rf /tmp/restore
-```
+**The restore script (`scripts/restore.sh`) automatically:**
+- ✅ Stops/starts services
+- ✅ Validates backups and snapshots
+- ✅ Checks for empty volumes (warns about old backups)
+- ✅ Cleans up temporary files
+- ✅ Shows progress and logs
+- ✅ Backs up databases before restoring
 
 **Important:** Only use backups from November 1st, 2025 or later. Earlier backups have empty Docker volumes due to a script bug that was fixed.
 
