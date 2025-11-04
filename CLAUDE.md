@@ -211,6 +211,7 @@ Never commit actual credential files.
 ## File Locations
 
 - **Docker configs**: Root directory (`docker-compose.yaml`, `docker-compose.override.yaml`)
+- **Documentation**: `CLAUDE.md` (this file), `RESTORE.md` (restore guide)
 - **Scripts**: `scripts/` - backup.sh, restore.sh, manage-connection.sh
 - **Systemd units**: `etc/systemd/system/` - service and timer files
 - **Logs**: `logs/` - Auto-created backup logs
@@ -219,35 +220,42 @@ Never commit actual credential files.
 
 ## Restoration Process
 
-To restore from backup:
+For detailed restore instructions, see **[RESTORE.md](RESTORE.md)**.
 
-### Restore Docker Volume:
-1. List snapshots: `just bl`
-2. Stop service: `just down <service>`
-3. Restore to temp: `restic restore latest --target /tmp/restore`
-4. Copy to volume:
-   ```bash
-   docker run --rm \
-     -v <volume-name>:/target \
-     -v /tmp/restore/docker-volumes/<volume-name>:/source \
-     alpine sh -c 'rm -rf /target/* && cp -a /source/. /target/'
-   ```
-5. Restart: `just up -d <service>`
-6. Cleanup: `rm -rf /tmp/restore`
+**Quick restore examples:**
+
+### Restore a Docker Volume:
+```bash
+# List backups
+just bl
+
+# Stop service
+docker compose stop vaultwarden
+
+# Restore and copy to volume
+mkdir -p /tmp/restore
+source .backup.env && export B2_ACCOUNT_ID B2_ACCOUNT_KEY RESTIC_REPOSITORY RESTIC_PASSWORD
+restic restore latest --target /tmp/restore
+docker run --rm \
+  -v rpi_vaultwarden-data:/target \
+  -v /tmp/restore/tmp/rpi-full-backup/docker-volumes/rpi_vaultwarden-data:/source \
+  alpine sh -c 'rm -rf /target/* && cp -a /source/. /target/'
+
+# Restart and cleanup
+docker compose start vaultwarden
+rm -rf /tmp/restore
+```
 
 ### Restore Media Folder:
 ```bash
+mkdir -p /tmp/restore
+source .backup.env && export B2_ACCOUNT_ID B2_ACCOUNT_KEY RESTIC_REPOSITORY RESTIC_PASSWORD
 restic restore latest --target /tmp/restore
-sudo rsync -a /tmp/restore/media-filebrowser/ /media/vieitesrpi/vieitesss/filebrowser/
+rsync -av /tmp/restore/tmp/rpi-full-backup/media-filebrowser/ /media/vieitesrpi/vieitesss/filebrowser/
 rm -rf /tmp/restore
 ```
 
-### Restore Database:
-```bash
-restic restore latest --target /tmp/restore
-cp /tmp/restore/filebrowser-db/database.db filebrowser/database.db
-rm -rf /tmp/restore
-```
+**Important:** Only use backups from November 1st, 2025 or later. Earlier backups have empty Docker volumes due to a script bug that was fixed.
 
 ## Systemd Service Setup
 
