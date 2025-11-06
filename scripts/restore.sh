@@ -16,6 +16,7 @@ export B2_ACCOUNT_ID B2_ACCOUNT_KEY RESTIC_REPOSITORY RESTIC_PASSWORD
 
 # Configuration
 RESTORE_TEMP="/tmp/restore"
+BACKUP_PATH_IN_SNAPSHOT="home/vieitesrpi/rpi/.backup-temp"  # Path as stored in restic
 MEDIA_PATH="${BACKUP_MEDIA_PATH:-/media/vieitesrpi/vieitesss/filebrowser}"
 DB_PATH="$PROJECT_DIR/filebrowser/database.db"
 
@@ -67,7 +68,7 @@ get_snapshot_id() {
         echo "latest"
     else
         # Validate snapshot ID exists
-        if restic snapshots --json | grep -q "\"id\":\"$snapshot\""; then
+        if restic snapshots --json | grep -qE "(\"id\":\"$snapshot\"|\"short_id\":\"$snapshot\")"; then
             echo "$snapshot"
         else
             error "Snapshot ID '$snapshot' not found"
@@ -101,10 +102,10 @@ list_volumes_in_backup() {
         exit 1
     fi
 
-    if [ -d "$RESTORE_TEMP/tmp/rpi-full-backup/docker-volumes" ]; then
+    if [ -d "$RESTORE_TEMP/$BACKUP_PATH_IN_SNAPSHOT/docker-volumes" ]; then
         echo ""
         info "Available volumes in backup:"
-        ls -1 "$RESTORE_TEMP/tmp/rpi-full-backup/docker-volumes"
+        ls -1 "$RESTORE_TEMP/$BACKUP_PATH_IN_SNAPSHOT/docker-volumes"
         echo ""
     else
         warn "No docker-volumes directory found. This may be an old backup (pre-Nov 2025)"
@@ -129,11 +130,11 @@ restore_docker_volume() {
     restore_snapshot "$snapshot"
 
     # Verify volume exists in backup
-    local volume_path="$RESTORE_TEMP/tmp/rpi-full-backup/docker-volumes/$volume_name"
+    local volume_path="$RESTORE_TEMP/$BACKUP_PATH_IN_SNAPSHOT/docker-volumes/$volume_name"
     if [ ! -d "$volume_path" ]; then
         error "Volume $volume_name not found in backup"
         error "Available volumes:"
-        ls -1 "$RESTORE_TEMP/tmp/rpi-full-backup/docker-volumes" 2>/dev/null || echo "None"
+        ls -1 "$RESTORE_TEMP/$BACKUP_PATH_IN_SNAPSHOT/docker-volumes" 2>/dev/null || echo "None"
         exit 1
     fi
 
@@ -182,7 +183,7 @@ restore_all_volumes() {
     restore_snapshot "$snapshot"
 
     # Get list of volumes
-    local volumes_dir="$RESTORE_TEMP/tmp/rpi-full-backup/docker-volumes"
+    local volumes_dir="$RESTORE_TEMP/$BACKUP_PATH_IN_SNAPSHOT/docker-volumes"
     if [ ! -d "$volumes_dir" ]; then
         error "No docker-volumes directory found in backup"
         exit 1
@@ -224,7 +225,7 @@ restore_media() {
     restore_snapshot "$snapshot"
 
     # Verify media folder exists in backup
-    local media_backup="$RESTORE_TEMP/tmp/rpi-full-backup/media-filebrowser"
+    local media_backup="$RESTORE_TEMP/$BACKUP_PATH_IN_SNAPSHOT/media-filebrowser"
     if [ ! -d "$media_backup" ]; then
         error "Media folder not found in backup"
         exit 1
@@ -272,7 +273,7 @@ restore_database() {
     restore_snapshot "$snapshot"
 
     # Verify database exists in backup
-    local db_backup="$RESTORE_TEMP/tmp/rpi-full-backup/filebrowser-db/database.db"
+    local db_backup="$RESTORE_TEMP/$BACKUP_PATH_IN_SNAPSHOT/filebrowser-db/database.db"
     if [ ! -f "$db_backup" ]; then
         error "Database not found in backup"
         exit 1

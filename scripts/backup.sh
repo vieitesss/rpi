@@ -16,7 +16,7 @@ fi
 export B2_ACCOUNT_ID B2_ACCOUNT_KEY RESTIC_REPOSITORY RESTIC_PASSWORD
 
 # Configuration
-BACKUP_TEMP="/tmp/rpi-full-backup"
+BACKUP_TEMP="$PROJECT_DIR/.backup-temp"
 MEDIA_SOURCE="${BACKUP_MEDIA_PATH:-/media/vieitesrpi/vieitesss/filebrowser}"
 LOG_FILE="$PROJECT_DIR/logs/backup-$(date +%Y%m%d-%H%M%S).log"
 mkdir -p "$PROJECT_DIR/logs"

@@ -2,5 +2,6 @@
 .backup.env
 logs/
 temp-backup/
+.backup-temp/
 filebrowser/database.db
 filebrowser/database.db.bak
