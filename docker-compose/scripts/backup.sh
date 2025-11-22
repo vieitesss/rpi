@@ -3,7 +3,7 @@ set -euo pipefail
 
 # Load backup environment variables
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
+PROJECT_DIR="$(realpath "$SCRIPT_DIR"/../..)"
 
 if [ -f "$PROJECT_DIR/.backup.env" ]; then
     source "$PROJECT_DIR/.backup.env"
