@@ -1,0 +1,89 @@
+{{- if gt (len .Values.pvcs) 0 }}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: restic-backup
+    namespace: {{ .Release.Namespace }}
+spec:
+  schedule: {{ .Values.schedule | quote }}
+  successfulJobsHistoryLimit: {{ .Values.cronjob.successfulJobsHistoryLimit }}
+  failedJobsHistoryLimit: {{ .Values.cronjob.failedJobsHistoryLimit }}
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: restic-backup
+            job: backup
+        spec:
+          restartPolicy: OnFailure
+          serviceAccountName: {{ .Release.Name }}-sa
+          initContainers:
+          - name: install-kubectl
+            image: alpine/k8s:1.31.1
+            command: ['sh', '-c', 'cp /usr/bin/kubectl /kubectl-bin/']
+            volumeMounts:
+            - name: kubectl-bin
+              mountPath: /kubectl-bin
+          containers:
+          - name: restic-backup
+            image: "{{ .Values.cronjob.image.repository }}:{{ .Values.cronjob.image.tag }}"
+            imagePullPolicy: {{ .Values.cronjob.image.pullPolicy }}
+            command:
+            - /bin/sh
+            - /scripts/backup.sh
+            env:
+            - name: NAMESPACE
+              value: {{ .Release.Namespace | quote }}
+            - name: SCALE_DOWN_ENABLED
+              value: {{ .Values.scaleDown.enabled | quote }}
+            - name: SCALE_DOWN_DEPLOYMENTS
+              value: {{ join "," .Values.scaleDown.deployments | quote }}
+            - name: SCALE_DOWN_WAIT_SECONDS
+              value: {{ .Values.scaleDown.waitSeconds | quote }}
+            - name: RESTIC_REPOSITORY
+              value: {{ .Values.repository.url | quote }}
+            - name: RESTIC_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-credentials
+                  key: RESTIC_PASSWORD
+            - name: B2_ACCOUNT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-credentials
+                  key: B2_ACCOUNT_ID
+            - name: B2_ACCOUNT_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-credentials
+                  key: B2_ACCOUNT_KEY
+            volumeMounts:
+            - name: scripts
+              mountPath: /scripts
+            - name: kubectl-bin
+              mountPath: /kubectl-bin
+            {{- range .Values.pvcs }}
+            - name: {{ .name }}
+              mountPath: {{ .mountPath }}
+              readOnly: true
+            {{- end }}
+            resources:
+              {{- toYaml .Values.cronjob.resources | nindent 14 }}
+          volumes:
+          - name: scripts
+            configMap:
+              name: {{ .Release.Name }}-scripts
+              defaultMode: 0755
+          - name: kubectl-bin
+            emptyDir: {}
+          {{- range .Values.pvcs }}
+          - name: {{ .name }}
+            persistentVolumeClaim:
+              claimName: {{ .name }}
+          {{- end }}
+{{- end }}

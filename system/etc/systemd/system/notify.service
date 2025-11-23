@@ -1,0 +1,14 @@
+[Unit]
+Description=Notify on boot when services are ready
+After=k3s.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=vieitesrpi
+WorkingDirectory=/home/vieitesrpi/rpi
+ExecStart=/home/vieitesrpi/rpi/scripts/notify.sh
+RemainAfterExit=no
+
+[Install]
+WantedBy=multi-user.target

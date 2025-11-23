@@ -1,0 +1,43 @@
+environments:
+  default:
+  dev:
+  pro:
+
+---
+
+repositories:
+- name: external-secrets
+  url: https://charts.external-secrets.io
+
+templates:
+  default:
+    chart: ./kubernetes/helm/charts/{{`{{ .Release.Name }}`}}
+    namespace: {{ .Environment.Name }}
+    missingFileHandler: Warn
+    values:
+    - ./kubernetes/values/{{`{{ .Release.Name }}`}}/values.yaml
+    - ./kubernetes/values/{{`{{ .Release.Name }}`}}/{{ .Environment.Name }}.yaml
+
+releases:
+# External Secrets Operator - Deploy first to enable secret management
+- name: external-secrets
+  namespace: external-secrets
+  createNamespace: true
+  chart: external-secrets/external-secrets
+  version: 0.10.5
+  values:
+  - ./kubernetes/values/external-secrets/values.yaml
+
+# Restic Backup - PVC backups to B2
+- name: restic-backup
+  inherit:
+  - template: default
+  needs:
+  - external-secrets/external-secrets
+
+# Application services
+- name: vaultwarden
+  inherit:
+  - template: default
+  needs:
+  - external-secrets/external-secrets

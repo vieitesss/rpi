@@ -1,0 +1,5 @@
+# Development environment overrides for vaultwarden
+
+tailscale:
+  # Set hostname for dev environment
+  hostname: vaultwarden-dev-2

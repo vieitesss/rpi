@@ -1,0 +1,6 @@
+apiVersion: v2
+name: restic-backup
+description: Automated PVC backups to Backblaze B2 using restic
+type: application
+version: 0.1.0
+appVersion: "1.0"

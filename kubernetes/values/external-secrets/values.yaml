@@ -1,0 +1,22 @@
+# External Secrets Operator Configuration
+# https://github.com/external-secrets/external-secrets
+
+# Install CRDs as part of the Helm release
+installCRDs: true
+
+# Resource limits for the operator
+resources:
+  limits:
+    cpu: 100m
+    memory: 128Mi
+  requests:
+    cpu: 50m
+    memory: 64Mi
+
+# Disable webhook to save resources (optional for small deployments)
+webhook:
+  create: false
+
+# Disable cert controller (not needed without webhook)
+certController:
+  create: false

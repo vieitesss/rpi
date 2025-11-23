@@ -6,43 +6,51 @@ alias bl := backup-list
 alias br := restore
 
 _default:
-    just -l
+	just -l
 
 down *flags:
-    docker compose down {{flags}}
+	docker compose down {{flags}}
 
 up *flags:
-    docker compose up {{flags}}
+	docker compose up {{flags}}
 
 log *flags:
-    docker compose logs {{flags}}
+	docker compose logs {{flags}}
 
 # Backup commands
 backup:
-    bash scripts/backup.sh
+	bash scripts/backup.sh
 
 backup-list:
-    bash -c 'source .backup.env && export B2_ACCOUNT_ID B2_ACCOUNT_KEY RESTIC_REPOSITORY RESTIC_PASSWORD && restic snapshots'
+	kubernetes/scripts/restic-list.sh dev
+	kubernetes/scripts/restic-list.sh pro
 
 # Restore commands
 restore:
-    @echo "Interactive restore menu"
-    bash scripts/restore.sh
+	@echo "Interactive restore menu"
+	bash scripts/restore.sh
 
 restore-list:
-    bash scripts/restore.sh list
+	bash scripts/restore.sh list
 
 restore-volume volume snapshot="latest" service="":
-    bash scripts/restore.sh volume {{volume}} {{snapshot}} {{service}}
+	bash scripts/restore.sh volume {{volume}} {{snapshot}} {{service}}
 
 restore-all-volumes snapshot="latest":
-    bash scripts/restore.sh all-volumes {{snapshot}}
+	bash scripts/restore.sh all-volumes {{snapshot}}
 
 restore-media snapshot="latest" mode="merge":
-    bash scripts/restore.sh media {{snapshot}} {{mode}}
+	bash scripts/restore.sh media {{snapshot}} {{mode}}
 
 restore-database snapshot="latest":
-    bash scripts/restore.sh database {{snapshot}}
+	bash scripts/restore.sh database {{snapshot}}
 
 restore-list-volumes snapshot="latest":
-    bash scripts/restore.sh list-volumes {{snapshot}}
+	bash scripts/restore.sh list-volumes {{snapshot}}
+
+ks-apply service ns="pro":
+	kubectl create namespace {{ns}} || true
+	kubectl apply -R -f kubernetes/{{ns}}/{{service}}
+
+ks-delete service ns="pro":
+	kubectl delete -R -f kubernetes/{{ns}}/{{service}}

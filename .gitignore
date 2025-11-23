@@ -6,3 +6,8 @@ temp-backup/
 filebrowser/database.db
 filebrowser/database.db.bak
 CLAUDE.md
+
+# Kubernetes credentials
+kubernetes/.backup-credentials
+kubernetes/infra/gcp-credentials-secret.yaml
+kubernetes/helm/charts/*/charts

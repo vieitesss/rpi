@@ -1,0 +1,67 @@
+# Default values for restic-backup
+
+# Backup schedule (cron format)
+schedule: "0 23 * * *"  # Daily at 23:00 UTC
+
+# Restic repository configuration
+repository:
+  # B2 bucket and path
+  url: "b2:rpi-data:/kubernetes-pvcs"
+
+  # Retention policy (matches Velero/Docker backup retention)
+  retention:
+    keepDaily: 7
+    keepWeekly: 4
+    keepMonthly: 6
+    keepYearly: 1
+
+# PVCs to backup (configure per namespace in values/<namespace>.yaml)
+pvcs: []
+#  - name: dev-vaultwarden-pvc
+#    mountPath: /backup/vaultwarden
+#  - name: tailscale-state-pvc
+#    mountPath: /backup/tailscale
+
+# Scale down deployments before backup (ensures WAL checkpoint and data consistency)
+scaleDown:
+  enabled: true
+  # List of deployments to scale down (configure per namespace in values/<namespace>.yaml)
+  deployments: []
+  #  - vaultwarden
+  # Wait time in seconds after scaling down before backup
+  waitSeconds: 10
+
+# External Secrets configuration
+externalSecrets:
+  enabled: true
+  secretStoreName: gcp-cluster-secretstore
+  # GCP Secret Manager secret names
+  b2AccountIdKey: rpi-b2-account-id
+  b2AccountKeyKey: rpi-b2-account-key
+  resticPasswordKey: restic_password
+
+# CronJob configuration
+cronjob:
+  # Number of successful/failed jobs to keep
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+
+  # Resource limits
+  resources:
+    requests:
+      memory: "128Mi"
+      cpu: "100m"
+    limits:
+      memory: "256Mi"
+      cpu: "200m"
+
+  # Restic image
+  image:
+    repository: restic/restic
+    tag: "0.18.1"
+    pullPolicy: IfNotPresent
+
+# Backup verification (optional)
+verify:
+  enabled: false  # Enable to run restic check after backup
+  percentage: 5   # Check 5% of data

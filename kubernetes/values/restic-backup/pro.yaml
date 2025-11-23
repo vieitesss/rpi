@@ -1,0 +1,13 @@
+# Restic backup configuration for pro namespace
+
+# PVCs to backup
+pvcs:
+  - name: pro-vaultwarden-pvc
+    mountPath: /backup/vaultwarden
+  - name: tailscale-state-pvc
+    mountPath: /backup/tailscale
+
+# Deployments to scale down before backup
+scaleDown:
+  deployments:
+    - vaultwarden

@@ -1,0 +1,3 @@
+{{ if .Values.test }}
+{{ include "tailscale.pvc" . }}
+{{ end }}

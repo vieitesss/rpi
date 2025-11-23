@@ -1,0 +1,17 @@
+vaultwarden:
+  pvc:
+    storageClassName: local-path-retain
+
+tailscale:
+  enableHttps: true
+  extraArgs: "--advertise-tags=tag:private"
+  pvc:
+    storageClassName: local-path-retain
+  externalSecrets:
+    enabled: true
+    secretStoreName: gcp-cluster-secretstore
+    targetName: tailscale-auth
+    data:
+    - secretKey: TS_AUTHKEY
+      remoteRef:
+        key: tailscale_auth_client

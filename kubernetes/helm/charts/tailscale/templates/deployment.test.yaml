@@ -1,0 +1,13 @@
+{{ if .Values.test }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: test
+spec:
+  template:
+    metadata:
+      name: my-pod
+    spec:
+      containers:
+{{- include "tailscale.container" . | nindent 8 }}
+{{ end }}

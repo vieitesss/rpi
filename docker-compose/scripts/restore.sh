@@ -243,10 +243,10 @@ restore_media() {
             exit 1
         fi
         log "Restoring media (overwrite mode)..."
-        rsync -av --delete "$media_backup/" "$MEDIA_PATH/"
+        rsync -rltvh --no-perms --no-owner --no-group --delete "$media_backup/" "$MEDIA_PATH/"
     else
         log "Restoring media (merge mode)..."
-        rsync -av "$media_backup/" "$MEDIA_PATH/"
+        rsync -rltvh --no-perms --no-owner --no-group "$media_backup/" "$MEDIA_PATH/"
     fi
 
     log "Media folder restored successfully"

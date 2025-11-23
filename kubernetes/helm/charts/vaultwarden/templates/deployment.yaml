@@ -1,0 +1,38 @@
+{{- $v := .Values.vaultwarden | default dict -}}
+{{- $name := (include "vaultwarden.fullName" .) -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vaultwarden
+spec:
+  replicas: {{ $v.replicas | default 1 }}
+  selector:
+    matchLabels:
+      app: {{ $name }}
+  template:
+    metadata:
+      annotations:
+        backup.velero.io/backup-volumes: vaultwarden-data,tailscale-pvc-volume
+      labels:
+        app: {{ $name }}
+    spec:
+      volumes:
+        - name: vaultwarden-data
+          persistentVolumeClaim:
+            claimName: {{ $name }}-pvc
+        {{- include "tailscale.volumes" . | nindent 8}}
+      containers:
+      - name: vaultwarden
+        image: {{ $v.image | default "vaultwarden/server:latest" }}
+        ports:
+          - containerPort: 80
+        volumeMounts:
+          - name: vaultwarden-data
+            mountPath: /data
+        env:
+          - name: DOMAIN
+            valueFrom:
+              configMapKeyRef:
+                name: {{ $name }}-cm
+                key: domain
+      {{- include "tailscale.container" . | nindent 6 -}}

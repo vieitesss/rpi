@@ -1,0 +1,10 @@
+apiVersion: v2
+name: vaultwarden
+description: Vaultwarden service with Tailscale as a sidecar
+type: application
+version: 0.1.0
+appVersion: "1.16.0"
+dependencies:
+- name: tailscale
+  version: "0.1.0"
+  repository: "file://../tailscale"
