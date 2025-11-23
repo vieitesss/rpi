@@ -1,10 +1,11 @@
 [Unit]
 Description=Daily Raspberry Pi Backup Timer
-Requires=rpi-backup.service
 
 [Timer]
 # Run daily at 11:00 PM
 OnCalendar=*-*-* 23:00:00
+
+Unit=rpi-backup@%i.service
 # If system was off at trigger time, run on next boot
 Persistent=true
 # Randomize start time by up to 30 minutes to avoid load spikes

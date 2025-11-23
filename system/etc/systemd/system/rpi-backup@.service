@@ -5,10 +5,10 @@ Requires=docker.service
 
 [Service]
 Type=oneshot
-WorkingDirectory=/home/vieitesrpi/rpi
-ExecStart=/bin/bash /home/vieitesrpi/rpi/scripts/backup.sh
-User=vieitesrpi
-Group=vieitesrpi
+User=%i
+Group=%i
+WorkingDirectory=/home/%i/rpi
+ExecStart=/bin/bash docker-compose/scripts/backup.sh
 
 # Security settings
 PrivateTmp=yes
