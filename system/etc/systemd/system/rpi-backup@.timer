@@ -1,6 +1,5 @@
 [Unit]
 Description=Daily Raspberry Pi Backup Timer
-Requires=rpi-backup@.service
 
 [Timer]
 # Run daily at 11:00 PM
