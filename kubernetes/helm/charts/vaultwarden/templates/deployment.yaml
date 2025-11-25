@@ -12,7 +12,7 @@ spec:
   template:
     metadata:
       annotations:
-        backup.velero.io/backup-volumes: vaultwarden-data,tailscale-pvc-volume
+        backup.velero.io/backup-volumes: vaultwarden-data
       labels:
         app: {{ $name }}
     spec:
@@ -20,7 +20,6 @@ spec:
         - name: vaultwarden-data
           persistentVolumeClaim:
             claimName: {{ $name }}-pvc
-        {{- include "tailscale.volumes" . | nindent 8}}
       containers:
       - name: vaultwarden
         image: {{ $v.image | default "vaultwarden/server:latest" }}
@@ -35,4 +34,3 @@ spec:
               configMapKeyRef:
                 name: {{ $name }}-cm
                 key: domain
-      {{- include "tailscale.container" . | nindent 6 -}}

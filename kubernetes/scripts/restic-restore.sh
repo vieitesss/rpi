@@ -38,14 +38,33 @@ echo ""
 echo "Available snapshots for $NAMESPACE:"
 echo ""
 
-kubectl exec -n "$NAMESPACE" \
-    deployment/restic-backup-shell 2>/dev/null \
-    -- /scripts/list.sh || {
-    echo "Note: restic-backup not deployed yet or no snapshots available"
+echo "Checking for available snapshots..."
+if kubectl get cronjob restic-backup -n "$NAMESPACE" &>/dev/null; then
+    TEMP_POD_NAME="restic-list-temp-$(date +%s)"
+    cleanup_temp_pod() {
+        kubectl delete pod "$TEMP_POD_NAME" -n "$NAMESPACE" --ignore-not-found &>/dev/null || true
+    }
+    trap cleanup_temp_pod EXIT ERR
+    kubectl run "$TEMP_POD_NAME" \
+        --image=restic/restic:0.18.1 \
+        --restart=Never \
+        -n "$NAMESPACE" \
+        --rm \
+        -i \
+        --quiet \
+        --env="RESTIC_REPOSITORY=b2:rpi-data:/kubernetes-pvcs" \
+        --env="RESTIC_PASSWORD=$(kubectl get secret restic-backup-credentials -n "$NAMESPACE" -o jsonpath='{.data.RESTIC_PASSWORD}' | base64 -d)" \
+        --env="B2_ACCOUNT_ID=$(kubectl get secret restic-backup-credentials -n "$NAMESPACE" -o jsonpath='{.data.B2_ACCOUNT_ID}' | base64 -d)" \
+        --env="B2_ACCOUNT_KEY=$(kubectl get secret restic-backup-credentials -n "$NAMESPACE" -o jsonpath='{.data.B2_ACCOUNT_KEY}' | base64 -d)" \
+        --command -- restic snapshots --host "$NAMESPACE" 2>/dev/null || {
+        echo "Note: No snapshots available yet for $NAMESPACE"
+    }
+else
+    echo "Note: restic-backup not deployed yet"
     echo ""
-    echo "To list snapshots, first deploy restic-backup:"
+    echo "To deploy restic-backup:"
     echo "  helmfile -l name=restic-backup apply -e $NAMESPACE"
-}
+fi
 
 if [ -z "$TARGET_PVC" ]; then
     echo ""
@@ -55,8 +74,7 @@ if [ -z "$TARGET_PVC" ]; then
     echo ""
     echo "No target PVC specified. Use one of these commands:"
     echo ""
-    echo "  $0 $NAMESPACE $SNAPSHOT_ID dev-vaultwarden-pvc    # Restore to vaultwarden PVC"
-    echo "  $0 $NAMESPACE $SNAPSHOT_ID tailscale-state-pvc    # Restore to tailscale PVC"
+    echo "  $0 $NAMESPACE $SNAPSHOT_ID ${NAMESPACE}-vaultwarden-pvc    # Restore to vaultwarden PVC"
     echo ""
     exit 0
 fi

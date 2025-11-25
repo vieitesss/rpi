@@ -1,3 +1,0 @@
-{{ if .Values.test }}
-{{ include "tailscale.serveConfig" . }}
-{{ end }}

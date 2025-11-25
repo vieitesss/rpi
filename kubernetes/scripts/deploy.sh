@@ -44,6 +44,26 @@ fi
 echo "✓ GCP credentials found"
 echo ""
 
+# Check if Tailscale operator is installed
+echo "Checking Tailscale operator..."
+if ! kubectl get namespace tailscale &>/dev/null || \
+   ! kubectl get deployment tailscale-operator -n tailscale &>/dev/null; then
+    echo "Tailscale operator not found. Installing..."
+    INSTALL_SCRIPT="${SCRIPT_DIR}/install-tailscale-operator.sh"
+    if [ ! -f "$INSTALL_SCRIPT" ]; then
+        echo "Error: Install script not found: $INSTALL_SCRIPT"
+        exit 1
+    fi
+    if ! bash "$INSTALL_SCRIPT"; then
+        echo "Error: Failed to install Tailscale operator"
+        exit 1
+    fi
+    echo "✓ Tailscale operator installed"
+else
+    echo "✓ Tailscale operator already installed"
+fi
+echo ""
+
 echo "Applying infrastructure resources..."
 kubectl apply -f "$INFRA_DIR/storageclass.yaml"
 kubectl create namespace external-secrets --dry-run=client -o yaml | kubectl apply -f -
@@ -67,6 +87,10 @@ kubectl get pods -n "$ENVIRONMENT"
 echo ""
 echo "Next steps:"
 echo "  • Check status: kubectl get all -n $ENVIRONMENT"
-echo "  • View logs: kubectl logs -f deployment/vaultwarden -n $ENVIRONMENT -c vaultwarden"
-echo "  • Access via Tailscale: https://vaultwarden-${ENVIRONMENT}.burro-ph.ts.net"
+echo "  • View logs: kubectl logs -f deployment/vaultwarden -c vaultwarden -n $ENVIRONMENT"
+if [ "$ENVIRONMENT" = "dev" ]; then
+  echo "  • Access via Tailscale: https://vaultwarden-dev.burro-ph.ts.net"
+else
+  echo "  • Access via Tailscale: https://vaultwarden.burro-ph.ts.net"
+fi
 echo ""

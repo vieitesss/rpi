@@ -1,2 +1,3 @@
-tailscale:
+ingress:
   hostname: vaultwarden
+  tags: tag:private

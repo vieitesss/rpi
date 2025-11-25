@@ -1,0 +1,18 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "vaultwarden.fullName" . }}
+  annotations:
+    {{- if .Values.ingress.tags }}
+    tailscale.com/tags: {{ .Values.ingress.tags }}
+    {{- end }}
+spec:
+  ingressClassName: tailscale
+  defaultBackend:
+    service:
+      name: {{ include "vaultwarden.fullName" . }}
+      port:
+        number: 80
+  tls:
+    - hosts:
+        - {{ .Values.ingress.hostname | default (include "vaultwarden.fullName" .) }}

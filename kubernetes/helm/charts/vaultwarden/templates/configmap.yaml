@@ -1,5 +1,5 @@
-{{ $ts := .Values.tailscale | default dict }}
-{{ $hostname := $ts.hostname | default "dummy-vaultwarden" }}
+{{ $ingress := .Values.ingress | default dict }}
+{{ $hostname := $ingress.hostname | default (include "vaultwarden.fullName" .) }}
 {{ $domain := .Values.domain | default (printf "https://%s.burro-ph.ts.net" $hostname) }}
 apiVersion: v1
 kind: ConfigMap

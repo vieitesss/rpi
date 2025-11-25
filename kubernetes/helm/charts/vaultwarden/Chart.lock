@@ -1,6 +1,0 @@
-dependencies:
-- name: tailscale
-  repository: file://../tailscale
-  version: 0.1.0
-digest: sha256:7755549bf127ad098e8edfe8232dad8ac0c76d2ffeb57a35846d608932f3573f
-generated: "2025-11-10T12:56:28.587954166+01:00"
