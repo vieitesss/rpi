@@ -10,4 +10,5 @@ CLAUDE.md
 # Kubernetes credentials
 kubernetes/.backup-credentials
 kubernetes/infra/gcp-credentials-secret.yaml
+kubernetes/infra/gcp-cluster-secretstore.yaml
 kubernetes/helm/charts/*/charts
