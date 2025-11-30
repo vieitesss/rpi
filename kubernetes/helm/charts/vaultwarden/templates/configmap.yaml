@@ -1,9 +1,0 @@
-{{ $ingress := .Values.ingress | default dict }}
-{{ $hostname := $ingress.hostname | default (include "vaultwarden.fullName" .) }}
-{{ $domain := .Values.domain | default (printf "https://%s.burro-ph.ts.net" $hostname) }}
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: {{ include "vaultwarden.fullName" . }}-cm
-data:
-  domain: {{ $domain }}

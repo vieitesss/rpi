@@ -1,0 +1,62 @@
+{{- if .Values.deployment.enabled }}
+{{- $fullName := include "generic.fullName" . }}
+{{- $volumeName := printf "%s-data" $fullName }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $fullName }}
+  labels:
+    app: {{ $fullName }}
+spec:
+  replicas: {{ .Values.deployment.replicas }}
+  selector:
+    matchLabels:
+      app: {{ $fullName }}
+  template:
+    metadata:
+      annotations:
+        {{- if and .Values.velero.enabled .Values.pvc.enabled }}
+        backup.velero.io/backup-volumes: {{ $volumeName }}
+        {{- end }}
+        {{- with .Values.deployment.annotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      labels:
+        app: {{ $fullName }}
+    spec:
+      volumes:
+        {{- if .Values.pvc.enabled }}
+        - name: {{ $volumeName }}
+          persistentVolumeClaim:
+            claimName: {{ $fullName }}-pvc
+        {{- end }}
+        {{- with .Values.deployment.extraVolumes }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      containers:
+      - name: {{ .Release.Name }}
+        image: {{ .Values.deployment.image | required "deployment.image is required" }}
+        ports:
+          - containerPort: {{ .Values.service.targetPort }}
+        volumeMounts:
+          {{- if .Values.pvc.enabled }}
+          - name: {{ $volumeName }}
+            mountPath: {{ .Values.pvc.mountPath }}
+          {{- end }}
+          {{- with .Values.deployment.extraVolumeMounts }}
+          {{- toYaml . | nindent 10 }}
+          {{- end }}
+        envFrom:
+          {{- if .Values.cm.data }}
+          - configMapRef:
+              name: {{ $fullName }}-cm
+          {{- end }}
+          {{- if .Values.secret.data }}
+          - secretRef:
+              name: {{ $fullName }}-secret
+          {{- end }}
+        {{- with .Values.deployment.env }}
+        env:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+{{- end }}

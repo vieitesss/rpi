@@ -1,3 +1,6 @@
 ingress:
   hostname: vaultwarden
-  tags: tag:private
+
+cm:
+  data:
+    DOMAIN: https://vaultwarden.burro-ph.ts.net

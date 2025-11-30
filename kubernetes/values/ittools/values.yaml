@@ -1,0 +1,5 @@
+deployment:
+  image: corentinth/it-tools:latest
+
+ingress:
+  tags: "tag:shared"

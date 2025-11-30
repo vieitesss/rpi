@@ -11,7 +11,7 @@ repositories:
 
 templates:
   default:
-    chart: ./kubernetes/helm/charts/{{`{{ .Release.Name }}`}}
+    chart: ./kubernetes/helm/charts/generic
     namespace: {{ .Environment.Name }}
     missingFileHandler: Warn
     values:
@@ -19,6 +19,18 @@ templates:
     - ./kubernetes/values/{{`{{ .Release.Name }}`}}/{{ .Environment.Name }}.yaml
 
 releases:
+# Application services
+- name: vaultwarden
+  inherit:
+  - template: default
+  needs:
+  - external-secrets/external-secrets
+  - restic-backup
+
+- name: ittools
+  inherit:
+  - template: default
+
 # External Secrets Operator - Deploy first to enable secret management
 - name: external-secrets
   namespace: external-secrets
@@ -30,14 +42,9 @@ releases:
 
 # Restic Backup - PVC backups to B2
 - name: restic-backup
-  inherit:
-  - template: default
+  chart: ./kubernetes/helm/charts/restic-backup
+  namespace: {{ .Environment.Name }}
   needs:
   - external-secrets/external-secrets
-
-# Application services
-- name: vaultwarden
-  inherit:
-  - template: default
-  needs:
-  - external-secrets/external-secrets
+  values:
+  - ./kubernetes/values/restic-backup/{{ .Environment.Name }}.yaml

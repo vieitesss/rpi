@@ -1,0 +1,34 @@
+cm:
+  data: {}
+
+secret:
+  data: {}
+
+deployment:
+  enabled: true
+  replicas: 1
+  # required
+  image: ""
+
+service:
+  enabled: true
+  port: 80
+  targetPort: 80
+
+ingress:
+  enabled: true
+  # defaults to the release name
+  hostname: ""
+  domain: burro-ph.ts.net
+  tags: ""
+
+pvc:
+  enabled: false
+  storageClassName: local-path-retain
+  accessModes:
+    - ReadWriteOnce
+  storage: "5Gi"
+  mountPath: "/data"
+
+velero:
+  enabled: false

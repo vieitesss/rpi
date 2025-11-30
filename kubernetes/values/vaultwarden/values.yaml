@@ -1,3 +1,8 @@
-vaultwarden:
-  pvc:
-    storageClassName: local-path-retain
+ingress:
+  tags: "tag:private"
+
+pvc:
+  enabled: true
+
+deployment:
+  image: vaultwarden/server:latest
