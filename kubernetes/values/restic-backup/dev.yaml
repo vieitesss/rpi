@@ -4,10 +4,10 @@
 pvcs:
   - name: dev-vaultwarden-pvc
     mountPath: /backup/vaultwarden
-  - name: tailscale-state-pvc
-    mountPath: /backup/tailscale
 
 # Deployments to scale down before backup
+# Disabled for vaultwarden - SQLite WAL mode handles live backups safely
 scaleDown:
+  enabled: false
   deployments:
-    - vaultwarden
+    - dev-vaultwarden
