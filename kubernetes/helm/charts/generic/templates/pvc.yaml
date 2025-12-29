@@ -2,7 +2,7 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: {{ include "generic.fullName" . }}-pvc
+  name: {{ .Release.Name }}-pvc
 spec:
   storageClassName: {{ .Values.pvc.storageClassName }}
   accessModes:
