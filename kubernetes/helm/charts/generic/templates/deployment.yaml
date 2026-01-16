@@ -28,7 +28,7 @@ spec:
         {{- if .Values.pvc.enabled }}
         - name: {{ $volumeName }}
           persistentVolumeClaim:
-            claimName: {{ .Release.Name }}-pvc
+            claimName: {{ include "generic.fullName" . }}-pvc
         {{- end }}
         {{- with .Values.deployment.extraVolumes }}
         {{- toYaml . | nindent 8 }}
