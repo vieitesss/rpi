@@ -31,6 +31,18 @@ releases:
   inherit:
   - template: default
 
+- name: tandem-backend
+  inherit:
+  - template: default
+  needs:
+  - external-secrets/external-secrets
+
+- name: tandem-frontend
+  inherit:
+  - template: default
+  needs:
+  - external-secrets/external-secrets
+
 # External Secrets Operator - Deploy first to enable secret management
 - name: external-secrets
   namespace: external-secrets

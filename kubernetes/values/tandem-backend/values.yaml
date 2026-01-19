@@ -1,0 +1,18 @@
+deployment:
+  image: ghcr.io/vieitesss/tandem-backend:latest
+
+service:
+  port: 80
+  targetPort: 4000
+
+ingress:
+  enabled: false
+
+externalSecrets:
+  enabled: true
+  secretStoreName: gcp-cluster-secretstore
+  refreshInterval: 24h
+  targetName: ""
+  data:
+    - secretKey: SUPABASE_SERVICE_ROLE_KEY
+      remoteKey: supabase_service_role_key

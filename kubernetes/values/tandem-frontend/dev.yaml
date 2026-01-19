@@ -1,0 +1,7 @@
+ingress:
+  hostname: tandem-dev
+
+cm:
+  data:
+    API_BASE_URL: https://tandem-backend-dev.burro-ph.ts.net
+    NEXT_PUBLIC_SUPABASE_URL: https://jtrscdyfuzcccbgvojgb.supabase.co

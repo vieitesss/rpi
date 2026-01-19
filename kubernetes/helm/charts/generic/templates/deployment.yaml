@@ -55,6 +55,10 @@ spec:
           - secretRef:
               name: {{ $fullName }}-secret
           {{- end }}
+          {{- if .Values.externalSecrets.enabled }}
+          - secretRef:
+              name: {{ default (printf "%s-external-secret" $fullName) .Values.externalSecrets.targetName }}
+          {{- end }}
         {{- with .Values.deployment.env }}
         env:
           {{- toYaml . | nindent 10 }}

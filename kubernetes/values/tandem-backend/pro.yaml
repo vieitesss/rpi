@@ -1,0 +1,9 @@
+ingress:
+  enabled: true
+  hostname: tandem-backend
+  tags: "tag:shared"
+
+cm:
+  data:
+    SUPABASE_URL: https://jtrscdyfuzcccbgvojgb.supabase.co
+    CORS_ORIGIN: https://tandem-pro.burro-ph.ts.net

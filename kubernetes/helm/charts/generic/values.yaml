@@ -4,6 +4,13 @@ cm:
 secret:
   data: {}
 
+externalSecrets:
+  enabled: false
+  secretStoreName: gcp-cluster-secretstore
+  refreshInterval: 1h
+  targetName: ""
+  data: []
+
 deployment:
   enabled: true
   replicas: 1

@@ -1,0 +1,21 @@
+deployment:
+  image: ghcr.io/vieitesss/tandem-frontend:latest
+
+service:
+  port: 80
+  targetPort: 3000
+
+ingress:
+  enabled: true
+  hostname: tandem
+  domain: burro-ph.ts.net
+  tags: "tag:shared"
+
+externalSecrets:
+  enabled: true
+  secretStoreName: gcp-cluster-secretstore
+  refreshInterval: 24h
+  targetName: ""
+  data:
+    - secretKey: NEXT_PUBLIC_SUPABASE_ANON_KEY
+      remoteKey: supabase_anon_key
