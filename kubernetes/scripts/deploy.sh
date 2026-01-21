@@ -69,6 +69,7 @@ kubectl apply -f "$INFRA_DIR/storageclass.yaml"
 kubectl create namespace external-secrets --dry-run=client -o yaml | kubectl apply -f -
 kubectl apply -f "$INFRA_DIR/gcp-credentials-secret.yaml"
 kubectl apply -f "$INFRA_DIR/gcp-cluster-secretstore.yaml"
+kubectl apply -f "$INFRA_DIR/coredns-custom.yaml"
 echo "✓ Infrastructure ready"
 echo ""
 
