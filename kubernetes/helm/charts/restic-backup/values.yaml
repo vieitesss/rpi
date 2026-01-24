@@ -5,8 +5,15 @@ schedule: "0 23 * * *"  # Daily at 23:00 UTC
 
 # Restic repository configuration
 repository:
-  # B2 bucket and path
-  url: "b2:rpi-data:/kubernetes-pvcs"
+  # Base bucket configuration (dynamic per-app repositories)
+  # Repository structure: b2:<bucket>:/<basePath>/<namespace>/<appName>
+  bucket: "rpi-data"
+  basePath: "kubernetes-pvcs"
+  
+  # Application name for repository isolation
+  # Default value used for both dev and pro unless overridden
+  # Creates repositories like: b2:rpi-data:/kubernetes-pvcs/dev/vaultwarden
+  appName: "vaultwarden"
 
   # Retention policy (matches Velero/Docker backup retention)
   retention:

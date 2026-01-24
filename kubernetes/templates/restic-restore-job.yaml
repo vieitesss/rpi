@@ -17,7 +17,7 @@ spec:
     - name: RESTORE_PATH
       value: "/restore"
     - name: RESTIC_REPOSITORY
-      value: "b2:rpi-data:/kubernetes-pvcs"
+      value: "{{RESTIC_REPOSITORY}}"
     - name: RESTIC_PASSWORD
       valueFrom:
         secretKeyRef:

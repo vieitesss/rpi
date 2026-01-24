@@ -11,6 +11,8 @@ data:
     echo "========================================="
     echo "Restic Backup Started: $(date)"
     echo "Namespace: {{ .Release.Namespace }}"
+    echo "App: {{ .Values.repository.appName }}"
+    echo "Repository: b2:{{ .Values.repository.bucket }}:/{{ .Values.repository.basePath }}/{{ .Release.Namespace }}/{{ .Values.repository.appName }}"
     echo "========================================="
     echo ""
 
@@ -135,6 +137,8 @@ data:
     echo "========================================="
     echo "Restic Restore Started: $(date)"
     echo "Namespace: {{ .Release.Namespace }}"
+    echo "App: {{ .Values.repository.appName }}"
+    echo "Repository: b2:{{ .Values.repository.bucket }}:/{{ .Values.repository.basePath }}/{{ .Release.Namespace }}/{{ .Values.repository.appName }}"
     echo "========================================="
 
     # Get snapshot ID from environment variable (defaults to 'latest')
@@ -192,6 +196,8 @@ data:
     echo "========================================="
     echo "Restic Snapshots"
     echo "Namespace: {{ .Release.Namespace }}"
+    echo "App: {{ .Values.repository.appName }}"
+    echo "Repository: b2:{{ .Values.repository.bucket }}:/{{ .Values.repository.basePath }}/{{ .Release.Namespace }}/{{ .Values.repository.appName }}"
     echo "========================================="
     echo ""
 

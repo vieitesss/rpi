@@ -1,3 +1,4 @@
+{{- include "restic-backup.validateAppName" . }}
 {{- if gt (len .Values.pvcs) 0 }}
 apiVersion: batch/v1
 kind: CronJob
@@ -46,7 +47,7 @@ spec:
             - name: SCALE_DOWN_WAIT_SECONDS
               value: {{ .Values.scaleDown.waitSeconds | quote }}
             - name: RESTIC_REPOSITORY
-              value: {{ .Values.repository.url | quote }}
+              value: "b2:{{ .Values.repository.bucket }}:/{{ .Values.repository.basePath }}/{{ .Release.Namespace }}/{{ .Values.repository.appName }}"
             - name: RESTIC_PASSWORD
               valueFrom:
                 secretKeyRef:
