@@ -3,39 +3,46 @@ set -euo pipefail
 
 # Restic Restore Helper Script
 # Restore PVCs from restic backup
-# Usage: ./restic-restore.sh <namespace> <snapshot-id> <target-pvc>
-# Example: ./restic-restore.sh dev latest dev-vaultwarden-pvc
+# Usage: ./restic-restore.sh <namespace> <app-name> <snapshot-id> <target-pvc>
+# Example: ./restic-restore.sh dev vaultwarden latest dev-vaultwarden-pvc
 
 NAMESPACE=${1:-}
-SNAPSHOT_ID=${2:-latest}
-TARGET_PVC=${3:-}
+APP_NAME=${2:-}
+SNAPSHOT_ID=${3:-latest}
+TARGET_PVC=${4:-}
 
-if [ -z "$NAMESPACE" ]; then
-    echo "Usage: $0 <namespace> [snapshot-id] [target-pvc]"
+if [ -z "$NAMESPACE" ] || [ -z "$APP_NAME" ]; then
+    echo "Usage: $0 <namespace> <app-name> [snapshot-id] [target-pvc]"
     echo ""
     echo "Arguments:"
     echo "  namespace    - Kubernetes namespace (dev, pro)"
+    echo "  app-name     - Application name (must match repository.appName)"
     echo "  snapshot-id  - Restic snapshot ID or 'latest' (default: latest)"
-    echo "  target-pvc   - Target PVC to restore to (optional - creates temp PVC if not specified)"
+    echo "  target-pvc   - Target PVC to restore to (optional - lists snapshots if not specified)"
     echo ""
     echo "Examples:"
-    echo "  $0 dev                                    # List available snapshots"
-    echo "  $0 dev latest                             # Restore latest to temp PVC"
-    echo "  $0 dev latest dev-vaultwarden-pvc         # Restore to existing PVC"
-    echo "  $0 dev a1b2c3d4                           # Restore specific snapshot"
+    echo "  $0 dev vaultwarden                                # List available snapshots"
+    echo "  $0 dev vaultwarden latest                         # Info about latest snapshot"
+    echo "  $0 dev vaultwarden latest dev-vaultwarden-pvc     # Restore to existing PVC"
+    echo "  $0 dev vaultwarden a1b2c3d4 dev-vaultwarden-pvc   # Restore specific snapshot"
     exit 1
 fi
+
+# Calculate repository path dynamically
+RESTIC_REPO="b2:rpi-data:/kubernetes-pvcs/${NAMESPACE}/${APP_NAME}"
 
 echo "========================================="
 echo "Restic Restore Helper"
 echo "========================================="
 echo "Namespace: $NAMESPACE"
+echo "App: $APP_NAME"
+echo "Repository: $RESTIC_REPO"
 echo "Snapshot: $SNAPSHOT_ID"
-echo "Target PVC: ${TARGET_PVC:-<will create temp PVC>}"
+echo "Target PVC: ${TARGET_PVC:-<none - will list snapshots>}"
 echo ""
 
 # List available snapshots first
-echo "Available snapshots for $NAMESPACE:"
+echo "Available snapshots for $NAMESPACE/$APP_NAME:"
 echo ""
 
 echo "Checking for available snapshots..."
@@ -52,12 +59,14 @@ if kubectl get cronjob restic-backup -n "$NAMESPACE" &>/dev/null; then
         --rm \
         -i \
         --quiet \
-        --env="RESTIC_REPOSITORY=b2:rpi-data:/kubernetes-pvcs" \
+        --env="RESTIC_REPOSITORY=${RESTIC_REPO}" \
         --env="RESTIC_PASSWORD=$(kubectl get secret restic-backup-credentials -n "$NAMESPACE" -o jsonpath='{.data.RESTIC_PASSWORD}' | base64 -d)" \
         --env="B2_ACCOUNT_ID=$(kubectl get secret restic-backup-credentials -n "$NAMESPACE" -o jsonpath='{.data.B2_ACCOUNT_ID}' | base64 -d)" \
         --env="B2_ACCOUNT_KEY=$(kubectl get secret restic-backup-credentials -n "$NAMESPACE" -o jsonpath='{.data.B2_ACCOUNT_KEY}' | base64 -d)" \
         --command -- restic snapshots --host "$NAMESPACE" 2>/dev/null || {
-        echo "Note: No snapshots available yet for $NAMESPACE"
+        echo "Note: No snapshots available yet for $NAMESPACE/$APP_NAME"
+        echo ""
+        echo "Repository may not be initialized yet. First backup will create it."
     }
 else
     echo "Note: restic-backup not deployed yet"
@@ -74,7 +83,7 @@ if [ -z "$TARGET_PVC" ]; then
     echo ""
     echo "No target PVC specified. Use one of these commands:"
     echo ""
-    echo "  $0 $NAMESPACE $SNAPSHOT_ID ${NAMESPACE}-vaultwarden-pvc    # Restore to vaultwarden PVC"
+    echo "  $0 $NAMESPACE $APP_NAME $SNAPSHOT_ID ${NAMESPACE}-${APP_NAME}-pvc    # Restore to PVC"
     echo ""
     exit 0
 fi
@@ -100,6 +109,7 @@ trap "rm -f $TEMP_FILE" EXIT
 
 sed -e "s/{{RESTORE_POD_NAME}}/$POD_NAME/g" \
     -e "s/{{NAMESPACE}}/$NAMESPACE/g" \
+    -e "s|{{RESTIC_REPOSITORY}}|$RESTIC_REPO|g" \
     -e "s/{{SNAPSHOT_ID}}/$SNAPSHOT_ID/g" \
     -e "s/{{TARGET_PVC}}/$TARGET_PVC/g" \
     "$TEMPLATE_FILE" > "$TEMP_FILE"
