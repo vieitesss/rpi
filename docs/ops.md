@@ -15,9 +15,23 @@ This repo is GitOps. Prefer small, declarative changes and validate in `dev` bef
 
 ## Backup / Restore
 
-- K8s restic backup: `bash kubernetes/scripts/restic-backup.sh dev`
-- K8s restic list: `bash kubernetes/scripts/restic-list.sh dev`
-- K8s restic restore helper: `bash kubernetes/scripts/restic-restore.sh dev [snapshot] [target-pvc]`
+### Kubernetes (Restic per-app repositories)
+
+- **Manual backup**: `bash kubernetes/scripts/restic-backup.sh <namespace> <app-name>`
+  - Example: `bash kubernetes/scripts/restic-backup.sh dev vaultwarden`
+  
+- **List snapshots**: `bash kubernetes/scripts/restic-list.sh <namespace> <app-name>`
+  - Example: `bash kubernetes/scripts/restic-list.sh dev vaultwarden`
+  
+- **Restore**: `bash kubernetes/scripts/restic-restore.sh <namespace> <app-name> [snapshot-id] [target-pvc]`
+  - Example: `bash kubernetes/scripts/restic-restore.sh dev vaultwarden latest dev-vaultwarden-pvc`
+  
+- **Migrate old backups**: `bash kubernetes/scripts/restic-migrate-to-app-repos.sh <namespace> <app-name>`
+  - Run this once per app to migrate from old global repository to new per-app structure
+  - Example: `bash kubernetes/scripts/restic-migrate-to-app-repos.sh dev vaultwarden`
+
+### Docker Compose (Legacy)
+
 - Docker restore helper (interactive): `bash docker-compose/scripts/restore.sh`
 
 ## Docker Compose (Legacy)
