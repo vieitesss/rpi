@@ -1,0 +1,15 @@
+# Restic backup configuration for tandem in dev namespace
+
+repository:
+  appName: tandem
+
+# PVCs to backup
+pvcs:
+  - name: dev-tandem-backend-pvc
+    mountPath: /backup/tandem
+
+# Deployments to scale down before backup
+# Disabled for tandem - PGlite can handle live backups safely (like SQLite WAL mode)
+scaleDown:
+  enabled: false
+  deployments: []

@@ -171,9 +171,11 @@ data:
     echo ""
     echo "Moving files to correct location..."
     # Move files from nested backup path to root
-    if [ -d "$RESTORE_PATH/backup/vaultwarden" ]; then
-      mv "$RESTORE_PATH"/backup/vaultwarden/* "$RESTORE_PATH"/
-      mv "$RESTORE_PATH"/backup/vaultwarden/.[!.]* "$RESTORE_PATH"/ 2>/dev/null || true
+    APP_NAME="{{ .Values.repository.appName }}"
+    if [ -d "$RESTORE_PATH/backup/$APP_NAME" ]; then
+      mv "$RESTORE_PATH"/backup/$APP_NAME/* "$RESTORE_PATH"/ || true
+      mv "$RESTORE_PATH"/backup/$APP_NAME/.[!.]* "$RESTORE_PATH"/ 2>/dev/null || true
+      mv "$RESTORE_PATH"/backup/$APP_NAME/..?* "$RESTORE_PATH"/ 2>/dev/null || true
       rm -rf "$RESTORE_PATH"/backup
       echo "✓ Files moved successfully"
     fi

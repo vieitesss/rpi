@@ -59,4 +59,13 @@ releases:
   needs:
   - external-secrets/external-secrets
   values:
-  - ./kubernetes/values/restic-backup/{{ .Environment.Name }}.yaml
+  - ./kubernetes/values/restic-backup/apps/vaultwarden/{{ .Environment.Name }}.yaml
+
+- name: restic-backup-tandem
+  chart: ./kubernetes/helm/charts/restic-backup
+  namespace: {{ .Environment.Name }}
+  needs:
+  - tandem-backend
+  - external-secrets/external-secrets
+  values:
+  - ./kubernetes/values/restic-backup/apps/tandem/{{ .Environment.Name }}.yaml
