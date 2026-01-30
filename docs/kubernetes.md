@@ -2,27 +2,27 @@
 
 ## Environments
 
-- `dev` is the default proving ground.
-- Avoid changing `pro` unless explicitly asked.
+- Use `dev` by default.
+- Only change `pro` when asked.
 
 ## Helmfile
 
-- Helmfile drives deployments; prefer `helmfile -e <env> sync` over ad-hoc `kubectl apply` for app changes.
-- When iterating on one service, use a label selector (e.g., `-l name=<service>`).
+- Deploy apps with `helmfile -e <env> sync` (avoid ad-hoc `kubectl apply`).
+- Target one service with `-l name=<service>`.
 
 ## Values Layout
 
-Service configuration lives under `kubernetes/values/<service>/`:
+Service config lives in `kubernetes/values/<service>/`:
 
 - `values.yaml`: shared defaults
-- `dev.yaml` / `pro.yaml`: environment overrides
+- `dev.yaml` / `pro.yaml`: per-environment overrides
 
-Keep values small and focused on the service.
+Keep values focused on the service.
 
 ## Generic Chart
 
-Most services use the generic chart. Follow existing patterns in values files and keep resource naming consistent with chart helpers.
+Most services use the generic chart. Follow existing patterns and chart helpers for naming.
 
 ## Storage
 
-PVC naming is namespace-agnostic (`<service>-pvc`) to support cross-namespace restores.
+PVCs are namespace-agnostic: `<service>-pvc` (supports cross-namespace restores).

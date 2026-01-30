@@ -2,13 +2,13 @@
 
 ## Secrets
 
-- Keep secrets out of Git.
+- Never commit secrets.
 - Do not commit real credential files like `.env` or `.backup.env`.
-- Prefer External Secrets Operator + GCP Secret Manager for Kubernetes secrets.
-- Avoid committing generated secret YAMLs.
+- Use External Secrets Operator + GCP Secret Manager for Kubernetes secrets.
+- Do not commit generated secret YAMLs.
 
 ## Safe Ops Defaults
 
 - Prefer non-destructive, declarative changes.
 - Validate in `dev` first.
-- Avoid printing secret values in logs or command output.
+- Avoid printing secrets in logs or command output.
