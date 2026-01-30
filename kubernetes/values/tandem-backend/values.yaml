@@ -16,3 +16,5 @@ externalSecrets:
   data:
     - secretKey: SUPABASE_SERVICE_ROLE_KEY
       remoteKey: supabase_service_role_key
+    - secretKey: SUPABASE_ANON_KEY
+      remoteKey: supabase_anon_key

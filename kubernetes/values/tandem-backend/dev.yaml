@@ -1,9 +1,27 @@
+deployment:
+  image: ghcr.io/vieitesss/tandem-backend:0.4.0
+
 ingress:
   enabled: true
   hostname: tandem-backend-dev
   tags: "tag:shared"
 
+# Enable PVC for PGlite data storage
+pvc:
+  enabled: true
+  storage: "5Gi"
+  mountPath: "/data"
+  storageClassName: local-path-retain
+  accessModes:
+    - ReadWriteOnce
+
+# Disable ExternalSecrets in dev (using local PGlite instead of Supabase)
+externalSecrets:
+  enabled: false
+
 cm:
   data:
-    SUPABASE_URL: https://jtrscdyfuzcccbgvojgb.supabase.co
+    PGLITE_DATA_DIR: /data/pglite
+    PGLITE_SNAPSHOT_PATH: /data/tandem-db.tar
+    PGLITE_SNAPSHOT_INTERVAL_MS: "3600000"
     CORS_ORIGIN: https://tandem-dev.burro-ph.ts.net

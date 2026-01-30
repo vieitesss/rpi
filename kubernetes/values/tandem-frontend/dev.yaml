@@ -1,7 +1,13 @@
+deployment:
+  image: ghcr.io/vieitesss/tandem-frontend:0.6.1
+
 ingress:
   hostname: tandem-dev
+
+externalSecrets:
+  enabled: false
 
 cm:
   data:
     API_BASE_URL: https://tandem-backend-dev.burro-ph.ts.net
-    NEXT_PUBLIC_SUPABASE_URL: https://jtrscdyfuzcccbgvojgb.supabase.co
+    NEXT_PUBLIC_SSE_BASE_URL: https://tandem-backend-dev.burro-ph.ts.net
