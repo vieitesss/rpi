@@ -1,5 +1,5 @@
 deployment:
-  image: ghcr.io/vieitesss/tandem-backend:0.5.0
+  image: ghcr.io/vieitesss/tandem-backend:0.7.1
 
 ingress:
   enabled: true
