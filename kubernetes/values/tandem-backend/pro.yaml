@@ -1,5 +1,12 @@
 deployment:
-  image: ghcr.io/vieitesss/tandem-backend:0.7.1
+  image: ghcr.io/vieitesss/tandem-backend:0.7.3
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "100m"
+    limits:
+      memory: "1Gi"
+      cpu: "200m"
 
 ingress:
   enabled: true

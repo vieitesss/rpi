@@ -1,5 +1,5 @@
 deployment:
-  image: ghcr.io/vieitesss/tandem-frontend:0.11.1
+  image: ghcr.io/vieitesss/tandem-frontend:0.11.3
 
 ingress:
   hostname: tandem-pro
