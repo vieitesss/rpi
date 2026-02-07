@@ -40,6 +40,8 @@ spec:
       containers:
       - name: {{ .Release.Name }}
         image: {{ .Values.deployment.image | required "deployment.image is required" }}
+        resources:
+          {{- toYaml .Values.deployment.resources | nindent 10 }}
         ports:
           - containerPort: {{ .Values.service.targetPort }}
         volumeMounts:

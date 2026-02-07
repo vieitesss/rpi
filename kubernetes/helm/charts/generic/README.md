@@ -50,9 +50,16 @@ cm:
   data:
     ENV_VAR: value
 
-# Replicas
+# Deployment
 deployment:
   replicas: 1
+  resources:
+    requests:
+      memory: "128Mi"
+      cpu: "100m"
+    limits:
+      memory: "256Mi"
+      cpu: "200m"
 ```
 
 ## Usage Example
