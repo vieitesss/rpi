@@ -21,17 +21,17 @@ spec:
     - name: RESTIC_PASSWORD
       valueFrom:
         secretKeyRef:
-          name: restic-backup-credentials
+          name: {{CREDENTIALS_SECRET}}
           key: RESTIC_PASSWORD
     - name: B2_ACCOUNT_ID
       valueFrom:
         secretKeyRef:
-          name: restic-backup-credentials
+          name: {{CREDENTIALS_SECRET}}
           key: B2_ACCOUNT_ID
     - name: B2_ACCOUNT_KEY
       valueFrom:
         secretKeyRef:
-          name: restic-backup-credentials
+          name: {{CREDENTIALS_SECRET}}
           key: B2_ACCOUNT_KEY
     volumeMounts:
     - name: scripts
@@ -41,7 +41,7 @@ spec:
   volumes:
   - name: scripts
     configMap:
-      name: restic-backup-scripts
+      name: {{SCRIPTS_CONFIGMAP}}
       defaultMode: 0755
   - name: restore-data
     persistentVolumeClaim:
