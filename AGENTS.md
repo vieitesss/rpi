@@ -69,6 +69,7 @@ Run from `docker-compose/`:
 
 - Add short notes here as we work
 - The coding agent must update this section whenever an issue is reported or a fix is completed
+- Only record items that went wrong and required a fix; do not add routine successful operations
 - Solved format: `issue - solution`
 - Unsolved format: `issue - open`
 - Example solved: `helmfile sync failed due to missing env override - added dev values file`
