@@ -1,5 +1,5 @@
 deployment:
-  image: ghcr.io/vieitesss/tandem-backend:0.8.0
+  image: ghcr.io/vieitesss/tandem-backend:0.8.1-c13e664a
   resources:
     requests:
       memory: "512Mi"
