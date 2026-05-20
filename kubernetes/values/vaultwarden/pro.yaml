@@ -1,3 +1,6 @@
+deployment:
+  image: vaultwarden/server:1.36.0
+
 ingress:
   hostname: vaultwarden
 
