@@ -84,3 +84,4 @@ Run from `docker-compose/`:
 - pro/vaultwarden used mutable `vaultwarden/server:latest` in shared values - pinned pro override to upstream release tag `vaultwarden/server:1.36.0`, backed up first, synced release, and verified rollout
 - generic Helm chart lacked health probe support - added optional readiness/liveness/startup probe values and conditional deployment rendering, validated dev template and sample probe rendering
 - documentation log selector used nonexistent `app.kubernetes.io/name` label - updated docs to use existing generic chart label format `app=<env>-<service>`
+- restic CronJobs had no failure alerting - added optional ntfy failure notifications sourced from GCP Secret Manager secret `ntfy_backup_error`, enabled for dev/pro vaultwarden and tandem backup releases, and validated Helm templates

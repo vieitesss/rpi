@@ -55,6 +55,42 @@ data:
       echo ""
     fi
 
+    send_failure_notification() {
+      if [ "$NOTIFICATIONS_ENABLED" != "true" ]; then
+        return 0
+      fi
+
+      MESSAGE=$(printf '%s\n' \
+        "Restic backup failed" \
+        "Namespace: {{ .Release.Namespace }}" \
+        "Release: {{ .Release.Name }}" \
+        "App: {{ .Values.repository.appName }}" \
+        "Repository: b2:{{ .Values.repository.bucket }}:/{{ .Values.repository.basePath }}/{{ .Release.Namespace }}/{{ .Values.repository.appName }}" \
+        "Time: $(date)" \
+        "" \
+        "Inspect with:" \
+        "kubectl get jobs -n {{ .Release.Namespace }} -l app=restic-backup,job=backup" \
+        "kubectl logs -n {{ .Release.Namespace }} -l app=restic-backup,job=backup --tail=100")
+
+      if command -v curl >/dev/null 2>&1; then
+        curl -fsS \
+          -H "Title: ❌ Restic backup failed" \
+          -H "Priority: urgent" \
+          -H "Tags: warning,floppy_disk" \
+          -d "$MESSAGE" \
+          "${NTFY_URL}/${NTFY_TOPIC}" >/dev/null || true
+      elif command -v wget >/dev/null 2>&1; then
+        wget -qO- \
+          --header="Title: ❌ Restic backup failed" \
+          --header="Priority: urgent" \
+          --header="Tags: warning,floppy_disk" \
+          --post-data="$MESSAGE" \
+          "${NTFY_URL}/${NTFY_TOPIC}" >/dev/null || true
+      else
+        echo "Notification requested, but neither curl nor wget is available in the backup image"
+      fi
+    }
+
     # Cleanup function to scale back up
     cleanup() {
       if [ "$SCALE_DOWN_ENABLED" = "true" ] && [ -f "$REPLICA_COUNTS_FILE" ]; then
@@ -70,8 +106,17 @@ data:
       fi
     }
 
-    # Ensure cleanup runs even if backup fails
-    trap cleanup EXIT
+    on_exit() {
+      exit_code=$?
+      cleanup
+      if [ "$exit_code" -ne 0 ]; then
+        send_failure_notification
+      fi
+      exit "$exit_code"
+    }
+
+    # Ensure cleanup and failure notifications run even if backup fails
+    trap on_exit EXIT
 
     # Initialize repository if it doesn't exist
     echo "Checking repository..."

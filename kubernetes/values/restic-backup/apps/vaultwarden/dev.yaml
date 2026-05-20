@@ -1,5 +1,8 @@
 # Restic backup configuration for dev namespace
 
+notifications:
+  enabled: true
+
 # PVCs to backup
 pvcs:
   - name: dev-vaultwarden-pvc

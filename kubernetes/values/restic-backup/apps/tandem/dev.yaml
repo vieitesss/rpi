@@ -3,6 +3,9 @@
 repository:
   appName: tandem
 
+notifications:
+  enabled: true
+
 # PVCs to backup
 pvcs:
   - name: dev-tandem-backend-pvc

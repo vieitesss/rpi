@@ -46,6 +46,14 @@ externalSecrets:
   b2AccountIdKey: rpi-b2-account-id
   b2AccountKeyKey: rpi-b2-account-key
   resticPasswordKey: restic_password
+  ntfyTopicKey: ntfy_backup_error
+
+# Failure notifications
+notifications:
+  enabled: false
+  provider: ntfy
+  ntfy:
+    url: https://ntfy.sh
 
 # CronJob configuration
 cronjob:

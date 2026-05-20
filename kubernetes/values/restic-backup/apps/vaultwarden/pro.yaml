@@ -1,5 +1,8 @@
 # Restic backup configuration for pro namespace
 
+notifications:
+  enabled: true
+
 # PVCs to backup
 pvcs:
   - name: pro-vaultwarden-pvc

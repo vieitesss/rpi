@@ -63,6 +63,17 @@ spec:
                 secretKeyRef:
                   name: {{ .Release.Name }}-credentials
                   key: B2_ACCOUNT_KEY
+            - name: NOTIFICATIONS_ENABLED
+              value: {{ .Values.notifications.enabled | quote }}
+            {{- if .Values.notifications.enabled }}
+            - name: NTFY_URL
+              value: {{ .Values.notifications.ntfy.url | quote }}
+            - name: NTFY_TOPIC
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-credentials
+                  key: NTFY_TOPIC
+            {{- end }}
             volumeMounts:
             - name: scripts
               mountPath: /scripts
