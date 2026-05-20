@@ -30,7 +30,5 @@ helm upgrade \
   --create-namespace \
   --set-string oauth.clientId="${TAILSCALE_CLIENT_ID}" \
   --set-string oauth.clientSecret="${TAILSCALE_AUTH_KEY}" \
-  --set operatorConfig.image.tag=unstable \
-  --set proxyConfig.image.tag=unstable \
   --wait
 

@@ -76,4 +76,8 @@ Run from `docker-compose/`:
 - Example open: `restic restore timing out on large pvc - open`
 
 ### Notes
+- tailscale operator CrashLoopBackOff due to unstable image expecting CRDs missing from stable chart - removed unstable image overrides, corrected deploy check to use Helm release/deployment operator, upgraded to chart/app v1.96.5, and verified all tailscale pods ready
 - restoring pro/tandem into dev used wrong default restore scripts - added source namespace and restic release options to restic-restore.sh, then restored dev from pro/tandem and ran changes.sql migration
+- pro/vaultwarden restic backup targeted old `vaultwarden-pvc` while live deployment uses `pro-vaultwarden-pvc` - updated pro restic values to back up `pro-vaultwarden-pvc`, synced restic-backup, and verified snapshot `d9a5b95d`
+- pro/vaultwarden was running stale `vaultwarden/server:latest` pod - restarted after quiesced backup and verified Vaultwarden 1.36.0 on image digest `sha256:d626d04934cd1192ad8ced1adb975099fca78cec33ab467d2d3c923cde7f3b0c`
+- old unused pro `vaultwarden-pvc` remained after migration to `pro-vaultwarden-pvc` - deleted completed jobs referencing it and deleted the unused PVC object; backing PV remains Retain/Released

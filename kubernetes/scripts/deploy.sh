@@ -47,7 +47,8 @@ echo ""
 # Check if Tailscale operator is installed
 echo "Checking Tailscale operator..."
 if ! kubectl get namespace tailscale &>/dev/null || \
-   ! kubectl get deployment tailscale-operator -n tailscale &>/dev/null; then
+   ! helm status tailscale-operator -n tailscale &>/dev/null || \
+   ! kubectl get deployment operator -n tailscale &>/dev/null; then
     echo "Tailscale operator not found. Installing..."
     INSTALL_SCRIPT="${SCRIPT_DIR}/install-tailscale-operator.sh"
     if [ ! -f "$INSTALL_SCRIPT" ]; then
