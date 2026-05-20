@@ -6,6 +6,8 @@ temp-backup/
 filebrowser/database.db
 filebrowser/database.db.bak
 CLAUDE.md
+TASKS.md
+PLAN.md
 
 # Kubernetes credentials
 kubernetes/.backup-credentials
