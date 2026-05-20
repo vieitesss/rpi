@@ -2,7 +2,7 @@
 
 # PVCs to backup
 pvcs:
-  - name: vaultwarden-pvc
+  - name: pro-vaultwarden-pvc
     mountPath: /backup/vaultwarden
 
 # Deployments to scale down before backup
