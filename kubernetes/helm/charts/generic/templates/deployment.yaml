@@ -44,6 +44,18 @@ spec:
           {{- toYaml .Values.deployment.resources | nindent 10 }}
         ports:
           - containerPort: {{ .Values.service.targetPort }}
+        {{- with .Values.deployment.readinessProbe }}
+        readinessProbe:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        {{- with .Values.deployment.livenessProbe }}
+        livenessProbe:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        {{- with .Values.deployment.startupProbe }}
+        startupProbe:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
         volumeMounts:
           {{- if .Values.pvc.enabled }}
           - name: {{ $volumeName }}
