@@ -81,3 +81,5 @@ Run from `docker-compose/`:
 - pro/vaultwarden restic backup targeted old `vaultwarden-pvc` while live deployment uses `pro-vaultwarden-pvc` - updated pro restic values to back up `pro-vaultwarden-pvc`, synced restic-backup, and verified snapshot `d9a5b95d`
 - pro/vaultwarden was running stale `vaultwarden/server:latest` pod - restarted after quiesced backup and verified Vaultwarden 1.36.0 on image digest `sha256:d626d04934cd1192ad8ced1adb975099fca78cec33ab467d2d3c923cde7f3b0c`
 - old unused pro `vaultwarden-pvc` remained after migration to `pro-vaultwarden-pvc` - deleted completed jobs referencing it and deleted the unused PVC object; backing PV remains Retain/Released
+- pro/vaultwarden used mutable `vaultwarden/server:latest` in shared values - pinned pro override to upstream release tag `vaultwarden/server:1.36.0`, backed up first, synced release, and verified rollout
+- generic Helm chart lacked health probe support - added optional readiness/liveness/startup probe values and conditional deployment rendering, validated dev template and sample probe rendering
