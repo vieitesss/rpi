@@ -24,7 +24,7 @@ This repository is a GitOps homelab setup for a Raspberry Pi with:
 - Sync one release: `helmfile -e dev -l name=<service> sync`
 - Verify resources: `kubectl get all -n <env>`
 - Verify pods: `kubectl get pods -n <env>`
-- Follow logs: `kubectl logs -f -l app.kubernetes.io/name=<service> -n <env>`
+- Follow logs: `kubectl logs -f -l app=<env>-<service> -n <env>`
 
 ### Backup / Restore (Kubernetes, Restic per app)
 - Backup: `bash kubernetes/scripts/restic-backup.sh <namespace> <app-name>`
@@ -83,3 +83,4 @@ Run from `docker-compose/`:
 - old unused pro `vaultwarden-pvc` remained after migration to `pro-vaultwarden-pvc` - deleted completed jobs referencing it and deleted the unused PVC object; backing PV remains Retain/Released
 - pro/vaultwarden used mutable `vaultwarden/server:latest` in shared values - pinned pro override to upstream release tag `vaultwarden/server:1.36.0`, backed up first, synced release, and verified rollout
 - generic Helm chart lacked health probe support - added optional readiness/liveness/startup probe values and conditional deployment rendering, validated dev template and sample probe rendering
+- documentation log selector used nonexistent `app.kubernetes.io/name` label - updated docs to use existing generic chart label format `app=<env>-<service>`

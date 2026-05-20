@@ -11,7 +11,7 @@ GitOps repo. Keep changes small and declarative. Validate in `dev` before `pro`.
 
 - Check resources: `kubectl get all -n <env>`
 - Check pods: `kubectl get pods -n <env>`
-- Follow logs: `kubectl logs -f -l app.kubernetes.io/name=<service> -n <env>`
+- Follow logs: `kubectl logs -f -l app=<env>-<service> -n <env>`
 
 ## Backup / Restore (Kubernetes, Restic per app)
 
