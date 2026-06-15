@@ -1,0 +1,38 @@
+deployment:
+  image: mintplexlabs/anythingllm:latest
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "100m"
+    limits:
+      memory: "2Gi"
+      cpu: "1000m"
+  securityContext:
+    capabilities:
+      add:
+        - SYS_ADMIN
+
+service:
+  port: 80
+  targetPort: 3001
+
+pvc:
+  enabled: true
+  storage: "10Gi"
+  mountPath: /app/server/storage
+
+cm:
+  data:
+    STORAGE_DIR: /app/server/storage
+    LLM_PROVIDER: ollama
+    OLLAMA_BASE_PATH: https://macbook-air.burro-ph.ts.net
+    OLLAMA_MODEL_PREF: qwen2.5:7b
+    OLLAMA_KEEP_ALIVE_TIMEOUT: "300"
+
+externalSecrets:
+  enabled: false
+
+ingress:
+  enabled: true
+  domain: burro-ph.ts.net
+  tags: "tag:private"

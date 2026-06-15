@@ -1,0 +1,39 @@
+deployment:
+  strategy:
+    type: Recreate
+  # ponytail: overwrite MCP config to expose only /files; switch to UI-managed config if more MCP servers matter.
+  initContainers:
+    - name: seed-mcp-filesystem
+      image: busybox:1.36
+      command:
+        - sh
+        - -c
+        - |
+          mkdir -p /storage/plugins
+          cat > /storage/plugins/anythingllm_mcp_servers.json <<'EOF'
+          {
+            "mcpServers": {
+              "filesystem": {
+                "command": "npx",
+                "args": [
+                  "-y",
+                  "@modelcontextprotocol/server-filesystem",
+                  "/files"
+                ]
+              }
+            }
+          }
+          EOF
+      volumeMounts:
+        - name: dev-anythingllm-data
+          mountPath: /storage
+  extraVolumes:
+    - name: anythingllm-files
+      persistentVolumeClaim:
+        claimName: anythingllm-files-pvc
+  extraVolumeMounts:
+    - name: anythingllm-files
+      mountPath: /files
+
+ingress:
+  hostname: ai-dev

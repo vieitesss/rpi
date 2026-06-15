@@ -16,6 +16,7 @@ deployment:
   replicas: 1
   # required
   image: ""
+  strategy: {}
   resources:
     requests:
       memory: "128Mi"
@@ -26,6 +27,10 @@ deployment:
   readinessProbe: {}
   livenessProbe: {}
   startupProbe: {}
+  securityContext: {}
+  initContainers: []
+  extraVolumes: []
+  extraVolumeMounts: []
 
 service:
   enabled: true

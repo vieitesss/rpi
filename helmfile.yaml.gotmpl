@@ -31,6 +31,11 @@ releases:
   inherit:
   - template: default
 
+{{ if eq .Environment.Name "dev" }}
+- name: anythingllm
+  inherit:
+  - template: default
+{{ end }}
 - name: tandem-backend
   inherit:
   - template: default

@@ -9,6 +9,10 @@ metadata:
     app: {{ $fullName }}
 spec:
   replicas: {{ .Values.deployment.replicas }}
+  {{- with .Values.deployment.strategy }}
+  strategy:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
   selector:
     matchLabels:
       app: {{ $fullName }}
@@ -42,6 +46,10 @@ spec:
         image: {{ .Values.deployment.image | required "deployment.image is required" }}
         resources:
           {{- toYaml .Values.deployment.resources | nindent 10 }}
+        {{- with .Values.deployment.securityContext }}
+        securityContext:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
         ports:
           - containerPort: {{ .Values.service.targetPort }}
         {{- with .Values.deployment.readinessProbe }}

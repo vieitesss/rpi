@@ -86,3 +86,6 @@ Run from `docker-compose/`:
 - documentation log selector used nonexistent `app.kubernetes.io/name` label - updated docs to use existing generic chart label format `app=<env>-<service>`
 - restic CronJobs had no failure alerting - added optional ntfy failure notifications sourced from GCP Secret Manager secret `ntfy_backup_error`, enabled for dev/pro vaultwarden and tandem backup releases, and validated Helm templates
 - knot server reported inaccessible - checked knotserver/cloudflared logs and current HTTP access works; intermittent Cloudflare tunnel reconnects observed, no fix applied yet - open
+- anythingllm helmfile diff failed because main values file was misspelled `vaules.yaml`, leaving `deployment.image` empty - renamed it to `values.yaml` and verified `helmfile -e dev -l name=anythingllm diff`
+- anythingllm `/files` missing after deploy because standalone files PVC was not applied and rolling update stuck while old pod held app PVC - applied files PV/PVC, set AnythingLLM strategy to Recreate, reused existing data volume for MCP init, and verified `/files` writes to `/home/vieitesrpi/me`
+- anythingllm chat failed with `model is required` because Ollama provider had no model env/default (`initialized with model: undefined`) - pinned dev AnythingLLM config to `OLLAMA_MODEL_PREF=qwen2.5:7b`, synced/restarted, and verified pod can list Ollama models
