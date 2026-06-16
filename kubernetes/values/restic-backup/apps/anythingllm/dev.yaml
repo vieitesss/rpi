@@ -3,7 +3,7 @@
 repository:
   appName: anythingllm
 
-schedule: "15 23 * * *"
+schedule: "30 23 * * *"
 
 notifications:
   enabled: true

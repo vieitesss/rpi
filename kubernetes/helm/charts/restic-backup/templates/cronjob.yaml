@@ -10,6 +10,7 @@ metadata:
     namespace: {{ .Release.Namespace }}
 spec:
   schedule: {{ .Values.schedule | quote }}
+  timeZone: {{ .Values.timeZone | quote }}
   suspend: {{ .Values.cronjob.suspend }}
   successfulJobsHistoryLimit: {{ .Values.cronjob.successfulJobsHistoryLimit }}
   failedJobsHistoryLimit: {{ .Values.cronjob.failedJobsHistoryLimit }}

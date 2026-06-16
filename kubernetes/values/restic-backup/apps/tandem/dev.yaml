@@ -3,6 +3,8 @@
 repository:
   appName: tandem
 
+schedule: "15 23 * * *"
+
 notifications:
   enabled: true
 
