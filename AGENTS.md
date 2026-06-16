@@ -96,3 +96,5 @@ Run from `docker-compose/`:
 - backups had no UI for visualizing snapshots or triggering runs - deployed dev-only Backrest pilot with B2/restic secrets, persistent config/data, read-only mounts for dev backup PVCs, and Tailnet hostname `backrest-dev`
 - Backrest repo setup returned `b2 authorize account: 401` when using `.backup.env` - verified `.backup.env` B2 auth is stale/bad while Backrest pod's Kubernetes-injected B2/restic secrets can list existing snapshots
 - Backrest UI download button failed for vaultwarden SQLite from latest snapshot while raw `restic dump` from the Backrest pod works - caused by stale Backrest operation links indexed under old repo id `b2` after repo was renamed to `vaultwarden`; use fresh index/links or keep repo id stable
+- dev Backrest uninstall removed the PVC object despite trying to keep it - local-path-retain kept the PV/data, cleared the retained PV claimRef and rebound a standalone `dev-backrest-pvc`
+- vaultwarden snapshot `7f17b302` looked empty because it is the dev backup and its SQLite tables have 0 user/cipher rows; pro latest has data, use pro vaultwarden snapshots for real vault data
