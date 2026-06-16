@@ -1,0 +1,22 @@
+# Restic backup configuration for AnythingLLM in pro namespace
+
+repository:
+  appName: anythingllm
+
+schedule: "15 23 * * *"
+
+notifications:
+  enabled: true
+
+# PVCs to backup
+pvcs:
+  - name: pro-anythingllm-pvc
+    mountPath: /backup/anythingllm
+  - name: anythingllm-files-pvc
+    mountPath: /backup/anythingllm-files
+
+# AnythingLLM uses local DB/files; pause it briefly for a clean file backup.
+scaleDown:
+  enabled: true
+  deployments:
+    - pro-anythingllm

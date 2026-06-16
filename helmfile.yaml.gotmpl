@@ -80,3 +80,14 @@ releases:
   - external-secrets/external-secrets
   values:
   - ./kubernetes/values/restic-backup/apps/tandem/{{ .Environment.Name }}.yaml
+
+{{ if or (eq .Environment.Name "dev") (eq .Environment.Name "pro") }}
+- name: restic-backup-anythingllm
+  chart: ./kubernetes/helm/charts/restic-backup
+  namespace: {{ .Environment.Name }}
+  needs:
+  - anythingllm
+  - external-secrets/external-secrets
+  values:
+  - ./kubernetes/values/restic-backup/apps/anythingllm/{{ .Environment.Name }}.yaml
+{{ end }}

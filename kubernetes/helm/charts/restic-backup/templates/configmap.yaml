@@ -42,7 +42,7 @@ data:
 
           # Wait for pods to actually be deleted (ensures WAL checkpoint completes)
           echo "  Waiting for $deployment pods to terminate..."
-          kubectl wait --for=delete pod -l app="${NAMESPACE}-${deployment}" -n "$NAMESPACE" --timeout=60s 2>/dev/null || true
+          kubectl wait --for=delete pod -l app="$deployment" -n "$NAMESPACE" --timeout=60s 2>/dev/null || true
           echo "  ✓ Pods deleted"
         fi
       done

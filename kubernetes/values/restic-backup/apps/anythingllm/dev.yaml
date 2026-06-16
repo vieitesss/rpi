@@ -1,0 +1,25 @@
+# Restic backup configuration for AnythingLLM in dev namespace
+
+repository:
+  appName: anythingllm
+
+schedule: "15 23 * * *"
+
+notifications:
+  enabled: true
+
+cronjob:
+  suspend: true
+
+# PVCs to backup
+pvcs:
+  - name: dev-anythingllm-pvc
+    mountPath: /backup/anythingllm
+  - name: anythingllm-files-pvc
+    mountPath: /backup/anythingllm-files
+
+# AnythingLLM uses local DB/files; pause it briefly for a clean file backup.
+scaleDown:
+  enabled: true
+  deployments:
+    - dev-anythingllm

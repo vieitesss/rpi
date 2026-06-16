@@ -57,6 +57,8 @@ notifications:
 
 # CronJob configuration
 cronjob:
+  # Set true to keep the CronJob for manual runs only
+  suspend: false
   # Number of successful/failed jobs to keep
   successfulJobsHistoryLimit: 3
   failedJobsHistoryLimit: 3
