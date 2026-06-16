@@ -42,6 +42,13 @@ releases:
   inherit:
   - template: default
 {{ end }}
+{{ if eq .Environment.Name "dev" }}
+- name: backrest
+  inherit:
+  - template: default
+  needs:
+  - external-secrets/external-secrets
+{{ end }}
 - name: tandem-backend
   inherit:
   - template: default

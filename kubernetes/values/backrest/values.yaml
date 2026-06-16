@@ -1,0 +1,65 @@
+deployment:
+  image: garethgeorge/backrest:latest
+  resources:
+    requests:
+      memory: "128Mi"
+      cpu: "50m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+  extraVolumes:
+    - name: dev-vaultwarden-pvc
+      persistentVolumeClaim:
+        claimName: dev-vaultwarden-pvc
+        readOnly: true
+    - name: dev-tandem-backend-pvc
+      persistentVolumeClaim:
+        claimName: dev-tandem-backend-pvc
+        readOnly: true
+    - name: dev-anythingllm-pvc
+      persistentVolumeClaim:
+        claimName: dev-anythingllm-pvc
+        readOnly: true
+    - name: anythingllm-files-pvc
+      persistentVolumeClaim:
+        claimName: anythingllm-files-pvc
+        readOnly: true
+  extraVolumeMounts:
+    - name: dev-backrest-data
+      mountPath: /config
+      subPath: config
+    - name: dev-vaultwarden-pvc
+      mountPath: /backup/vaultwarden
+      readOnly: true
+    - name: dev-tandem-backend-pvc
+      mountPath: /backup/tandem
+      readOnly: true
+    - name: dev-anythingllm-pvc
+      mountPath: /backup/anythingllm
+      readOnly: true
+    - name: anythingllm-files-pvc
+      mountPath: /backup/anythingllm-files
+      readOnly: true
+
+service:
+  port: 80
+  targetPort: 9898
+
+pvc:
+  enabled: true
+  storage: "1Gi"
+  mountPath: "/data"
+
+externalSecrets:
+  enabled: true
+  data:
+    - secretKey: B2_ACCOUNT_ID
+      remoteKey: rpi-b2-account-id
+    - secretKey: B2_ACCOUNT_KEY
+      remoteKey: rpi-b2-account-key
+    - secretKey: RESTIC_PASSWORD
+      remoteKey: restic_password
+
+# Backrest is backup admin UI; keep private on Tailnet.
+ingress:
+  tags: "tag:private"
