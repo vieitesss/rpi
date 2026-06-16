@@ -1,0 +1,28 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: anythingllm-files-pv-pro
+spec:
+  capacity:
+    storage: 50Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: anythingllm-files
+  hostPath:
+    path: /home/vieitesrpi/me
+    type: Directory
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: anythingllm-files-pvc
+  namespace: pro
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: anythingllm-files
+  resources:
+    requests:
+      storage: 50Gi
+  volumeName: anythingllm-files-pv-pro

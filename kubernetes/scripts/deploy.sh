@@ -71,9 +71,11 @@ kubectl create namespace external-secrets --dry-run=client -o yaml | kubectl app
 kubectl apply -f "$INFRA_DIR/gcp-credentials-secret.yaml"
 kubectl apply -f "$INFRA_DIR/gcp-cluster-secretstore.yaml"
 kubectl apply -f "$INFRA_DIR/coredns-custom.yaml"
+kubectl create namespace "$ENVIRONMENT" --dry-run=client -o yaml | kubectl apply -f -
 if [ "$ENVIRONMENT" = "dev" ]; then
-    kubectl create namespace dev --dry-run=client -o yaml | kubectl apply -f -
     kubectl apply -f "$INFRA_DIR/anythingllm-files-pv.yaml"
+elif [ "$ENVIRONMENT" = "pro" ]; then
+    kubectl apply -f "$INFRA_DIR/anythingllm-files-pv-pro.yaml"
 fi
 echo "✓ Infrastructure ready"
 echo ""
