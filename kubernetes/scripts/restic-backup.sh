@@ -3,39 +3,51 @@ set -euo pipefail
 
 # Restic Backup Helper Script
 # Manually trigger a backup job for a specific app
-# Usage: ./restic-backup.sh <namespace> <app-name>
+# Usage: ./restic-backup.sh <namespace> <app-name> [restic-release]
 # Example: ./restic-backup.sh dev vaultwarden
 
 NAMESPACE=${1:-}
 APP_NAME=${2:-}
+RESTIC_RELEASE=${3:-${RESTIC_RELEASE_NAME:-restic-backup}}
 
 if [ -z "$NAMESPACE" ] || [ -z "$APP_NAME" ]; then
-    echo "Usage: $0 <namespace> <app-name>"
+    echo "Usage: $0 <namespace> <app-name> [restic-release]"
     echo ""
     echo "Arguments:"
-    echo "  namespace - Kubernetes namespace (dev, pro)"
-    echo "  app-name  - Application name (must match repository.appName in values)"
+    echo "  namespace      - Kubernetes namespace (dev, pro)"
+    echo "  app-name       - Application name (must match repository.appName in values)"
+    echo "  restic-release - CronJob/release to use (default: restic-backup)"
     echo ""
     echo "Examples:"
-    echo "  $0 dev vaultwarden    # Trigger backup for vaultwarden in dev"
-    echo "  $0 pro vaultwarden    # Trigger backup for vaultwarden in pro"
-    echo "  $0 dev ittools        # Trigger backup for ittools in dev"
+    echo "  $0 dev vaultwarden                         # Trigger vaultwarden backup in dev"
+    echo "  $0 pro vaultwarden                         # Trigger vaultwarden backup in pro"
+    echo "  $0 dev tandem restic-backup-tandem         # Trigger tandem backup in dev"
+    echo "  $0 dev anythingllm restic-backup-anythingllm"
     exit 1
 fi
 
 # Calculate repository path dynamically
 RESTIC_REPO="b2:rpi-data:/kubernetes-pvcs/${NAMESPACE}/${APP_NAME}"
 
+if ! kubectl get cronjob "$RESTIC_RELEASE" -n "$NAMESPACE" &>/dev/null; then
+    echo "Error: CronJob $RESTIC_RELEASE not found in namespace $NAMESPACE"
+    echo ""
+    echo "Deploy it first with:"
+    echo "  helmfile -l name=$RESTIC_RELEASE apply -e $NAMESPACE"
+    exit 1
+fi
+
 echo "========================================="
 echo "Restic Manual Backup"
 echo "========================================="
 echo "Namespace: $NAMESPACE"
 echo "App: $APP_NAME"
+echo "Restic Release: $RESTIC_RELEASE"
 echo "Repository: $RESTIC_REPO"
 echo ""
 
 # Verify CronJob exists and has correct app config
-CRONJOB_REPO=$(kubectl get cronjob restic-backup -n "$NAMESPACE" -o jsonpath='{.spec.jobTemplate.spec.template.spec.containers[0].env[?(@.name=="RESTIC_REPOSITORY")].value}')
+CRONJOB_REPO=$(kubectl get cronjob "$RESTIC_RELEASE" -n "$NAMESPACE" -o jsonpath='{.spec.jobTemplate.spec.template.spec.containers[0].env[?(@.name=="RESTIC_REPOSITORY")].value}')
 EXPECTED_REPO="b2:rpi-data:/kubernetes-pvcs/${NAMESPACE}/${APP_NAME}"
 
 if [ "$CRONJOB_REPO" != "$EXPECTED_REPO" ]; then
@@ -44,16 +56,20 @@ if [ "$CRONJOB_REPO" != "$EXPECTED_REPO" ]; then
     echo "   Expected:    $EXPECTED_REPO"
     echo ""
     echo "Please re-deploy the restic-backup chart:"
-    echo "  helmfile -l name=restic-backup apply -e $NAMESPACE"
+    echo "  helmfile -l name=$RESTIC_RELEASE apply -e $NAMESPACE"
     exit 1
 fi
 
 # Create a job from the CronJob (repository already correct in CronJob)
-JOB_NAME="restic-backup-manual-$(date +%Y%m%d-%H%M%S)"
+JOB_NAME="${RESTIC_RELEASE}-manual-$(date +%Y%m%d-%H%M%S)-$$"
+
+if [ "${#JOB_NAME}" -gt 63 ]; then
+    JOB_NAME="restic-manual-$(date +%Y%m%d-%H%M%S)-$$"
+fi
 
 echo "Creating job from CronJob..."
 kubectl create job "$JOB_NAME" \
-    --from=cronjob/restic-backup \
+    --from=cronjob/"$RESTIC_RELEASE" \
     -n "$NAMESPACE"
 
 echo ""

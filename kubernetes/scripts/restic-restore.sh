@@ -67,7 +67,7 @@ echo ""
 
 echo "Checking for available snapshots..."
 if kubectl get cronjob "$RESTIC_RELEASE" -n "$NAMESPACE" &>/dev/null; then
-    TEMP_POD_NAME="restic-list-temp-$(date +%s)"
+    TEMP_POD_NAME="restic-list-temp-$(date +%s)-$$"
     cleanup_temp_pod() {
         kubectl delete pod "$TEMP_POD_NAME" -n "$NAMESPACE" --ignore-not-found &>/dev/null || true
     }
@@ -116,7 +116,7 @@ echo ""
 
 # Use template file
 TEMPLATE_FILE="$HOME/rpi/kubernetes/templates/restic-restore-job.yaml"
-POD_NAME="restic-restore-$(date +%s)"
+POD_NAME="restic-restore-$(date +%s)-$$"
 
 if [ ! -f "$TEMPLATE_FILE" ]; then
     echo "Error: Template file not found: $TEMPLATE_FILE"
