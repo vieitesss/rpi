@@ -28,6 +28,9 @@ spec:
       labels:
         app: {{ $fullName }}
     spec:
+      {{- if .Values.deployment.hostPID }}
+      hostPID: true
+      {{- end }}
       volumes:
         {{- if .Values.pvc.enabled }}
         - name: {{ $volumeName }}

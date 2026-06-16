@@ -1,0 +1,20 @@
+deployment:
+  image: nicolargo/glances:latest-full
+  hostPID: true
+  env:
+    - name: GLANCES_OPT
+      value: "-w"
+  resources:
+    requests:
+      memory: "128Mi"
+      cpu: "50m"
+    limits:
+      memory: "256Mi"
+      cpu: "200m"
+
+service:
+  port: 80
+  targetPort: 61208
+
+ingress:
+  tags: "tag:private"

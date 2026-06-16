@@ -31,7 +31,13 @@ releases:
   inherit:
   - template: default
 
-{{ if eq .Environment.Name "dev" }}
+{{ if eq .Environment.Name "pro" }}
+- name: glances
+  inherit:
+  - template: default
+{{ end }}
+
+{{ if or (eq .Environment.Name "dev") (eq .Environment.Name "pro") }}
 - name: anythingllm
   inherit:
   - template: default

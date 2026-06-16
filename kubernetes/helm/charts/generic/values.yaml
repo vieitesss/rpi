@@ -16,6 +16,7 @@ deployment:
   replicas: 1
   # required
   image: ""
+  hostPID: false
   strategy: {}
   resources:
     requests:
