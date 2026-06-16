@@ -189,14 +189,23 @@ data:
     # Get snapshot ID from environment variable (defaults to 'latest')
     SNAPSHOT_ID="${SNAPSHOT_ID:-latest}"
     RESTORE_PATH="${RESTORE_PATH:-/restore}"
+    RESTORE_SOURCE_PATH="${RESTORE_SOURCE_PATH:-/backup/{{ .Values.repository.appName }}}"
+    RESTIC_HOST="${RESTIC_HOST:-{{ .Release.Namespace }}}"
+
+    case "$RESTORE_SOURCE_PATH" in
+      /*) ;;
+      *) echo "RESTORE_SOURCE_PATH must be absolute (example: /backup/{{ .Values.repository.appName }})"; exit 1 ;;
+    esac
 
     echo "Snapshot: $SNAPSHOT_ID"
     echo "Restore path: $RESTORE_PATH"
+    echo "Source path: $RESTORE_SOURCE_PATH"
+    echo "Host: $RESTIC_HOST"
     echo ""
 
     # List available snapshots
     echo "Available snapshots:"
-    restic snapshots --host {{ .Release.Namespace }}
+    restic snapshots --host "$RESTIC_HOST"
     echo ""
 
     # Clean target directory first
@@ -207,23 +216,12 @@ data:
     echo "✓ Target directory cleaned"
     echo ""
 
-    # Restore snapshot
-    echo "Restoring snapshot: $SNAPSHOT_ID"
-    restic restore "$SNAPSHOT_ID" \
+    # Restore source path directly to target root
+    echo "Restoring snapshot: $SNAPSHOT_ID:$RESTORE_SOURCE_PATH"
+    restic restore "$SNAPSHOT_ID:$RESTORE_SOURCE_PATH" \
       --target "$RESTORE_PATH" \
+      --verify \
       --verbose
-
-    echo ""
-    echo "Moving files to correct location..."
-    # Move files from nested backup path to root
-    APP_NAME="{{ .Values.repository.appName }}"
-    if [ -d "$RESTORE_PATH/backup/$APP_NAME" ]; then
-      mv "$RESTORE_PATH"/backup/$APP_NAME/* "$RESTORE_PATH"/ || true
-      mv "$RESTORE_PATH"/backup/$APP_NAME/.[!.]* "$RESTORE_PATH"/ 2>/dev/null || true
-      mv "$RESTORE_PATH"/backup/$APP_NAME/..?* "$RESTORE_PATH"/ 2>/dev/null || true
-      rm -rf "$RESTORE_PATH"/backup
-      echo "✓ Files moved successfully"
-    fi
 
     echo ""
     echo "Restore completed successfully!"

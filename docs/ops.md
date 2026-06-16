@@ -17,7 +17,7 @@ GitOps repo. Keep changes small and declarative. Validate in `dev` before `pro`.
 
 - Backup: `bash kubernetes/scripts/restic-backup.sh <namespace> <app-name>`
 - List: `bash kubernetes/scripts/restic-list.sh <namespace> <app-name>`
-- Restore: `bash kubernetes/scripts/restic-restore.sh <namespace> <app-name> [snapshot-id] [target-pvc]`
+- Restore: `bash kubernetes/scripts/restic-restore.sh <namespace> <app-name> [snapshot-id] [target-pvc] [source-namespace] [restic-release] [source-path]`
 - Migrate old backups: `bash kubernetes/scripts/restic-migrate-to-app-repos.sh <namespace> <app-name>` (run once per app)
 
 ## Docker Compose (Legacy)

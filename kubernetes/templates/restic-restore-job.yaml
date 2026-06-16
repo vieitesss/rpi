@@ -16,6 +16,10 @@ spec:
       value: "{{SNAPSHOT_ID}}"
     - name: RESTORE_PATH
       value: "/restore"
+    - name: RESTORE_SOURCE_PATH
+      value: "{{RESTORE_SOURCE_PATH}}"
+    - name: RESTIC_HOST
+      value: "{{RESTIC_HOST}}"
     - name: RESTIC_REPOSITORY
       value: "{{RESTIC_REPOSITORY}}"
     - name: RESTIC_PASSWORD

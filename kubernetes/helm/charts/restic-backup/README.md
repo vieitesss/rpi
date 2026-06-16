@@ -127,7 +127,7 @@ bash kubernetes/scripts/restic-list.sh dev vaultwarden
 Restore data to a PVC:
 
 ```bash
-bash kubernetes/scripts/restic-restore.sh <namespace> <app-name> [snapshot-id] [target-pvc]
+bash kubernetes/scripts/restic-restore.sh <namespace> <app-name> [snapshot-id] [target-pvc] [source-namespace] [restic-release] [source-path]
 
 # List available snapshots
 bash kubernetes/scripts/restic-restore.sh dev vaultwarden
@@ -141,15 +141,14 @@ bash kubernetes/scripts/restic-restore.sh dev vaultwarden a1b2c3d4 dev-vaultward
 
 ### Selective Restore (Multiple PVCs)
 
-If your app has multiple PVCs in the same repository, you can restore specific paths:
+If your app has multiple PVCs in the same repository, restore each snapshot path to the matching PVC:
 
 ```bash
-# The restore script extracts files from /backup/<mountPath>
-# To restore only specific data, modify the restore pod's restic command
-# to use --include or --exclude patterns:
+# Restore AnythingLLM app data
+bash kubernetes/scripts/restic-restore.sh pro anythingllm latest pro-anythingllm-pvc pro restic-backup-anythingllm /backup/anythingllm
 
-# Example: Only restore attachments
-restic restore latest --target /restore --include '/backup/vaultwarden-attachments/*'
+# Restore AnythingLLM files
+bash kubernetes/scripts/restic-restore.sh pro anythingllm latest anythingllm-files-pvc pro restic-backup-anythingllm /backup/anythingllm-files
 ```
 
 ## Migration
