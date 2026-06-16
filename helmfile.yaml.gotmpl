@@ -42,7 +42,7 @@ releases:
   inherit:
   - template: default
 {{ end }}
-{{ if eq .Environment.Name "dev" }}
+{{ if eq .Environment.Name "pro" }}
 - name: backrest
   inherit:
   - template: default

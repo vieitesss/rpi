@@ -1,0 +1,37 @@
+deployment:
+  extraVolumes:
+    - name: pro-vaultwarden-pvc
+      persistentVolumeClaim:
+        claimName: pro-vaultwarden-pvc
+        readOnly: true
+    - name: pro-tandem-backend-pvc
+      persistentVolumeClaim:
+        claimName: pro-tandem-backend-pvc
+        readOnly: true
+    - name: pro-anythingllm-pvc
+      persistentVolumeClaim:
+        claimName: pro-anythingllm-pvc
+        readOnly: true
+    - name: anythingllm-files-pvc
+      persistentVolumeClaim:
+        claimName: anythingllm-files-pvc
+        readOnly: true
+  extraVolumeMounts:
+    - name: pro-backrest-data
+      mountPath: /config
+      subPath: config
+    - name: pro-vaultwarden-pvc
+      mountPath: /backup/vaultwarden
+      readOnly: true
+    - name: pro-tandem-backend-pvc
+      mountPath: /backup/tandem
+      readOnly: true
+    - name: pro-anythingllm-pvc
+      mountPath: /backup/anythingllm
+      readOnly: true
+    - name: anythingllm-files-pvc
+      mountPath: /backup/anythingllm-files
+      readOnly: true
+
+ingress:
+  hostname: backrest
