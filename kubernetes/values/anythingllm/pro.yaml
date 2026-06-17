@@ -1,5 +1,5 @@
 deployment:
-  image: mintplexlabs/anythingllm:1.14.0
+  image: mintplexlabs/anythingllm:1.14.1
   strategy:
     type: Recreate
   # ponytail: overwrite MCP config to expose only /files; switch to UI-managed config if more MCP servers matter.
