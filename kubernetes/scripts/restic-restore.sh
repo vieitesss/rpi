@@ -1,6 +1,9 @@
 #!/bin/bash
 set -euo pipefail
 
+SCRIPT_DIR=$(cd -- "$(dirname "$0")" && pwd)
+source "$SCRIPT_DIR/lib/restic.sh"
+
 # Restic Restore Helper Script
 # Restore PVCs from restic backup
 # Usage: ./restic-restore.sh <namespace> <app-name> <snapshot-id> <target-pvc> [source-namespace] [restic-release] [source-path]
@@ -15,7 +18,7 @@ SOURCE_NAMESPACE=${5:-${RESTIC_SOURCE_NAMESPACE:-$NAMESPACE}}
 RESTIC_RELEASE=${6:-${RESTIC_RELEASE_NAME:-restic-backup}}
 RESTORE_SOURCE_PATH=${7:-${RESTIC_RESTORE_SOURCE_PATH:-/backup/$APP_NAME}}
 SCRIPTS_CONFIGMAP="${RESTIC_RELEASE}-scripts"
-CREDENTIALS_SECRET="${RESTIC_RELEASE}-credentials"
+CREDENTIALS_SECRET=$(restic_credentials_secret "$RESTIC_RELEASE")
 
 if [ -z "$NAMESPACE" ] || [ -z "$APP_NAME" ]; then
     echo "Usage: $0 <namespace> <app-name> [snapshot-id] [target-pvc] [source-namespace] [restic-release] [source-path]"
@@ -45,8 +48,11 @@ if [[ "$RESTORE_SOURCE_PATH" != /* ]]; then
     exit 1
 fi
 
-# Calculate repository path dynamically
-RESTIC_REPO="b2:rpi-data:/kubernetes-pvcs/${SOURCE_NAMESPACE}/${APP_NAME}"
+if [ "$SOURCE_NAMESPACE" = "$NAMESPACE" ]; then
+    RESTIC_REPO=$(restic_repository "$NAMESPACE" "$APP_NAME" "$RESTIC_RELEASE")
+else
+    RESTIC_REPO=$(restic_default_repository "$SOURCE_NAMESPACE" "$APP_NAME")
+fi
 
 echo "========================================="
 echo "Restic Restore Helper"
@@ -67,23 +73,7 @@ echo ""
 
 echo "Checking for available snapshots..."
 if kubectl get cronjob "$RESTIC_RELEASE" -n "$NAMESPACE" &>/dev/null; then
-    TEMP_POD_NAME="restic-list-temp-$(date +%s)-$$"
-    cleanup_temp_pod() {
-        kubectl delete pod "$TEMP_POD_NAME" -n "$NAMESPACE" --ignore-not-found &>/dev/null || true
-    }
-    trap cleanup_temp_pod EXIT ERR
-    kubectl run "$TEMP_POD_NAME" \
-        --image=restic/restic:0.18.1 \
-        --restart=Never \
-        -n "$NAMESPACE" \
-        --rm \
-        -i \
-        --quiet \
-        --env="RESTIC_REPOSITORY=${RESTIC_REPO}" \
-        --env="RESTIC_PASSWORD=$(kubectl get secret "$CREDENTIALS_SECRET" -n "$NAMESPACE" -o jsonpath='{.data.RESTIC_PASSWORD}' | base64 -d)" \
-        --env="B2_ACCOUNT_ID=$(kubectl get secret "$CREDENTIALS_SECRET" -n "$NAMESPACE" -o jsonpath='{.data.B2_ACCOUNT_ID}' | base64 -d)" \
-        --env="B2_ACCOUNT_KEY=$(kubectl get secret "$CREDENTIALS_SECRET" -n "$NAMESPACE" -o jsonpath='{.data.B2_ACCOUNT_KEY}' | base64 -d)" \
-        --command -- restic snapshots --host "$SOURCE_NAMESPACE" 2>/dev/null || {
+    restic_exec_repo "$NAMESPACE" "$RESTIC_REPO" "$RESTIC_RELEASE" -- snapshots --host "$SOURCE_NAMESPACE" 2>/dev/null || {
         echo "Note: No snapshots available yet for $SOURCE_NAMESPACE/$APP_NAME"
         echo ""
         echo "Repository may not be initialized yet. First backup will create it."
@@ -129,6 +119,7 @@ trap "rm -f $TEMP_FILE" EXIT
 
 sed -e "s/{{RESTORE_POD_NAME}}/$POD_NAME/g" \
     -e "s/{{NAMESPACE}}/$NAMESPACE/g" \
+    -e "s|{{RESTIC_IMAGE}}|$RESTIC_IMAGE|g" \
     -e "s|{{RESTIC_REPOSITORY}}|$RESTIC_REPO|g" \
     -e "s/{{SNAPSHOT_ID}}/$SNAPSHOT_ID/g" \
     -e "s/{{TARGET_PVC}}/$TARGET_PVC/g" \

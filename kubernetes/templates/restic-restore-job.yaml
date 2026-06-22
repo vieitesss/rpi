@@ -7,7 +7,7 @@ spec:
   restartPolicy: Never
   containers:
   - name: restic-restore
-    image: restic/restic:0.18.1
+    image: {{RESTIC_IMAGE}}
     command:
     - /bin/sh
     - /scripts/restore.sh
@@ -22,21 +22,9 @@ spec:
       value: "{{RESTIC_HOST}}"
     - name: RESTIC_REPOSITORY
       value: "{{RESTIC_REPOSITORY}}"
-    - name: RESTIC_PASSWORD
-      valueFrom:
-        secretKeyRef:
-          name: {{CREDENTIALS_SECRET}}
-          key: RESTIC_PASSWORD
-    - name: B2_ACCOUNT_ID
-      valueFrom:
-        secretKeyRef:
-          name: {{CREDENTIALS_SECRET}}
-          key: B2_ACCOUNT_ID
-    - name: B2_ACCOUNT_KEY
-      valueFrom:
-        secretKeyRef:
-          name: {{CREDENTIALS_SECRET}}
-          key: B2_ACCOUNT_KEY
+    envFrom:
+    - secretRef:
+        name: {{CREDENTIALS_SECRET}}
     volumeMounts:
     - name: scripts
       mountPath: /scripts

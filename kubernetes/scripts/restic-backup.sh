@@ -1,6 +1,9 @@
 #!/bin/bash
 set -euo pipefail
 
+SCRIPT_DIR=$(cd -- "$(dirname "$0")" && pwd)
+source "$SCRIPT_DIR/lib/restic.sh"
+
 # Restic Backup Helper Script
 # Manually trigger a backup job for a specific app
 # Usage: ./restic-backup.sh <namespace> <app-name> [restic-release]
@@ -26,8 +29,7 @@ if [ -z "$NAMESPACE" ] || [ -z "$APP_NAME" ]; then
     exit 1
 fi
 
-# Calculate repository path dynamically
-RESTIC_REPO="b2:rpi-data:/kubernetes-pvcs/${NAMESPACE}/${APP_NAME}"
+RESTIC_REPO=$(restic_default_repository "$NAMESPACE" "$APP_NAME")
 
 if ! kubectl get cronjob "$RESTIC_RELEASE" -n "$NAMESPACE" &>/dev/null; then
     echo "Error: CronJob $RESTIC_RELEASE not found in namespace $NAMESPACE"
@@ -47,8 +49,8 @@ echo "Repository: $RESTIC_REPO"
 echo ""
 
 # Verify CronJob exists and has correct app config
-CRONJOB_REPO=$(kubectl get cronjob "$RESTIC_RELEASE" -n "$NAMESPACE" -o jsonpath='{.spec.jobTemplate.spec.template.spec.containers[0].env[?(@.name=="RESTIC_REPOSITORY")].value}')
-EXPECTED_REPO="b2:rpi-data:/kubernetes-pvcs/${NAMESPACE}/${APP_NAME}"
+CRONJOB_REPO=$(restic_cronjob_repository "$NAMESPACE" "$RESTIC_RELEASE")
+EXPECTED_REPO=$(restic_default_repository "$NAMESPACE" "$APP_NAME")
 
 if [ "$CRONJOB_REPO" != "$EXPECTED_REPO" ]; then
     echo "⚠️  WARNING: CronJob repository mismatch!"

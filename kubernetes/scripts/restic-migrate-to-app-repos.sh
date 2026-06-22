@@ -1,6 +1,9 @@
 #!/bin/bash
 set -euo pipefail
 
+SCRIPT_DIR=$(cd -- "$(dirname "$0")" && pwd)
+source "$SCRIPT_DIR/lib/restic.sh"
+
 # Restic Migration Script
 # Migrate snapshots from the old global repository to new per-app repositories
 # Usage: ./restic-migrate-to-app-repos.sh <namespace> <app-name>
@@ -8,6 +11,7 @@ set -euo pipefail
 
 NAMESPACE=${1:-}
 APP_NAME=${2:-}
+RESTIC_RELEASE=${RESTIC_RELEASE_NAME:-restic-backup}
 
 if [ -z "$NAMESPACE" ] || [ -z "$APP_NAME" ]; then
     echo "Usage: $0 <namespace> <app-name>"
@@ -21,7 +25,7 @@ if [ -z "$NAMESPACE" ] || [ -z "$APP_NAME" ]; then
     echo "  $0 pro vaultwarden    # Migrate vaultwarden snapshots from pro"
     echo ""
     echo "IMPORTANT: This script will:"
-    echo "  1. Copy snapshots from b2:rpi-data:/kubernetes-pvcs to the new app-specific repo"
+    echo "  1. Copy snapshots from the old global repository to the new app-specific repo"
     echo "  2. Initialize the new repository if it doesn't exist"
     echo "  3. Keep the old repository intact (snapshots will NOT be deleted)"
     echo ""
@@ -29,8 +33,8 @@ if [ -z "$NAMESPACE" ] || [ -z "$APP_NAME" ]; then
 fi
 
 # Repository paths
-OLD_REPO="b2:rpi-data:/kubernetes-pvcs"
-NEW_REPO="b2:rpi-data:/kubernetes-pvcs/${NAMESPACE}/${APP_NAME}"
+OLD_REPO=$(restic_global_repository)
+NEW_REPO=$(restic_default_repository "$NAMESPACE" "$APP_NAME")
 
 echo "========================================="
 echo "Restic Migration to Per-App Repositories"
@@ -52,23 +56,20 @@ if [[ ! $REPLY =~ ^[Yy]$ ]]; then
 fi
 
 # Check if CronJob exists
-if ! kubectl get cronjob restic-backup -n "$NAMESPACE" &>/dev/null; then
-    echo "Error: restic-backup CronJob not found in namespace $NAMESPACE"
+if ! restic_cronjob_exists "$NAMESPACE" "$RESTIC_RELEASE"; then
+    echo "Error: $RESTIC_RELEASE CronJob not found in namespace $NAMESPACE"
     echo ""
     echo "Deploy it first with:"
-    echo "  helmfile -l name=restic-backup apply -e $NAMESPACE"
+    echo "  helmfile -l name=$RESTIC_RELEASE apply -e $NAMESPACE"
     exit 1
 fi
 
 # Get credentials from secret
 echo ""
 echo "Retrieving credentials from Kubernetes secret..."
-RESTIC_PASSWORD=$(kubectl get secret restic-backup-credentials -n "$NAMESPACE" -o jsonpath='{.data.RESTIC_PASSWORD}' | base64 -d)
-B2_ACCOUNT_ID=$(kubectl get secret restic-backup-credentials -n "$NAMESPACE" -o jsonpath='{.data.B2_ACCOUNT_ID}' | base64 -d)
-B2_ACCOUNT_KEY=$(kubectl get secret restic-backup-credentials -n "$NAMESPACE" -o jsonpath='{.data.B2_ACCOUNT_KEY}' | base64 -d)
 
 # Create temporary pod for migration
-POD_NAME="restic-migrate-$(date +%s)"
+POD_NAME="restic-migrate-$(date +%s)-$$"
 CLEANUP_POD=false
 
 cleanup() {
@@ -94,21 +95,18 @@ spec:
   restartPolicy: Never
   containers:
   - name: restic
-    image: restic/restic:0.18.1
+    image: $RESTIC_IMAGE
     command: ["/bin/sh", "-c", "sleep 3600"]
     env:
     - name: OLD_REPO
       value: "$OLD_REPO"
     - name: NEW_REPO
       value: "$NEW_REPO"
-    - name: RESTIC_PASSWORD
-      value: "$RESTIC_PASSWORD"
-    - name: B2_ACCOUNT_ID
-      value: "$B2_ACCOUNT_ID"
-    - name: B2_ACCOUNT_KEY
-      value: "$B2_ACCOUNT_KEY"
     - name: NAMESPACE
       value: "$NAMESPACE"
+    envFrom:
+    - secretRef:
+        name: $(restic_credentials_secret "$RESTIC_RELEASE")
 EOF
 
 CLEANUP_POD=true
@@ -167,7 +165,7 @@ echo ""
 # Setting RESTIC_FROM_PASSWORD explicitly for --from-repo
 kubectl exec -n "$NAMESPACE" "$POD_NAME" -- sh -c "
     export RESTIC_REPOSITORY=\$NEW_REPO
-    export RESTIC_FROM_PASSWORD=\$RESTIC_PASSWORD
+    export RESTIC_FROM_PASSWORD=\$${RESTIC_PASSWORD_KEY}
     restic copy \
         --from-repo \$OLD_REPO \
         --host $NAMESPACE \
