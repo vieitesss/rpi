@@ -12,6 +12,10 @@ spec:
     - /bin/sh
     - /scripts/restore.sh
     env:
+    - name: NAMESPACE
+      value: "{{NAMESPACE}}"
+    - name: APP_NAME
+      value: "{{APP_NAME}}"
     - name: SNAPSHOT_ID
       value: "{{SNAPSHOT_ID}}"
     - name: RESTORE_PATH

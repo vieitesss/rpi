@@ -34,7 +34,6 @@ b2:rpi-data:/kubernetes-pvcs/
 3. **Backup**: All configured PVCs mounted under `/backup/<mountPath>` are backed up
 4. **Repository**: Dynamic path `b2:<bucket>:/<basePath>/<namespace>/<appName>`
 5. **Retention**: Old snapshots pruned according to policy (7 daily, 4 weekly, 6 monthly, 1 yearly)
-6. **Optional verification**: Can run `restic check` after backup
 
 ## Configuration
 
@@ -91,10 +90,6 @@ externalSecrets:
   b2AccountKeyKey: rpi-b2-account-key
   resticPasswordKey: restic_password
 
-# Backup verification (optional)
-verify:
-  enabled: false    # Enable to run restic check after backup
-  percentage: 5     # Check 5% of data
 ```
 
 ## Usage
@@ -150,31 +145,6 @@ bash kubernetes/scripts/restic-restore.sh pro anythingllm latest pro-anythingllm
 # Restore AnythingLLM files
 bash kubernetes/scripts/restic-restore.sh pro anythingllm latest anythingllm-files-pvc pro restic-backup-anythingllm /backup/anythingllm-files
 ```
-
-## Migration
-
-### Migrating from Old Global Repository
-
-If you're upgrading from the old global repository structure (`b2:rpi-data:/kubernetes-pvcs`), use the migration script:
-
-```bash
-bash kubernetes/scripts/restic-migrate-to-app-repos.sh <namespace> <app-name>
-
-# Example
-bash kubernetes/scripts/restic-migrate-to-app-repos.sh dev vaultwarden
-```
-
-**What the migration does:**
-1. Copies all snapshots for the specified namespace/app from the old repository
-2. Initializes the new per-app repository if it doesn't exist
-3. Verifies the migration with `restic check`
-4. **Preserves the old repository** (does NOT delete snapshots)
-
-**After migration:**
-1. Update your values file to include `repository.appName`
-2. Re-deploy the chart: `helmfile -l name=restic-backup apply -e <namespace>`
-3. Verify with a manual backup
-4. Keep the old repository as a safety backup or delete it once verified
 
 ## Deployment
 
@@ -267,6 +237,9 @@ The CronJob sets these environment variables for the backup script:
 - `SCALE_DOWN_ENABLED`: Whether to scale down deployments
 - `SCALE_DOWN_DEPLOYMENTS`: Comma-separated list of deployments
 - `SCALE_DOWN_WAIT_SECONDS`: Wait time after scaling down
+- `RELEASE_NAME`: Helm release name for tags/logs
+- `APP_NAME`: Application name for logs/restore defaults
+- `RETENTION_KEEP_DAILY`, `RETENTION_KEEP_WEEKLY`, `RETENTION_KEEP_MONTHLY`, `RETENTION_KEEP_YEARLY`: Retention policy
 
 ### Restic Tags
 

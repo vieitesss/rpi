@@ -78,8 +78,3 @@ cronjob:
     repository: restic/restic
     tag: "0.18.1"
     pullPolicy: IfNotPresent
-
-# Backup verification (optional)
-verify:
-  enabled: false  # Enable to run restic check after backup
-  percentage: 5   # Check 5% of data

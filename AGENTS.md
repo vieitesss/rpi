@@ -29,8 +29,7 @@ This repository is a GitOps homelab setup for a Raspberry Pi with:
 ### Backup / Restore (Kubernetes, Restic per app)
 - Backup: `bash kubernetes/scripts/restic-backup.sh <namespace> <app-name>`
 - List snapshots: `bash kubernetes/scripts/restic-list.sh <namespace> <app-name>`
-- Restore: `bash kubernetes/scripts/restic-restore.sh <namespace> <app-name> [snapshot-id] [target-pvc] [source-namespace] [restic-release]`
-- Migrate old backups: `bash kubernetes/scripts/restic-migrate-to-app-repos.sh <namespace> <app-name>`
+- Restore: `bash kubernetes/scripts/restic-restore.sh <namespace> <app-name> [snapshot-id] [target-pvc] [source-namespace] [restic-release] [source-path]`
 
 ### Legacy Docker Compose
 Run from `docker-compose/`:

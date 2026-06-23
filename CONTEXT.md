@@ -52,9 +52,9 @@ service's PVC(s).
 _Avoid_: Backup job (when you mean the release)
 
 **Service repo**:
-A per-service Restic repository on Backblaze B2 (one service → one repo). The
-migration script `restic-migrate-to-app-repos.sh` keeps the old "app" wording
-for historical reasons; the canonical term is service repo.
+A per-service Restic repository on Backblaze B2 (one service → one repo). All
+dev and pro services use service repos; the old global repository no longer
+exists.
 _Avoid_: App repo, bucket (the B2 bucket is the container, not the repo)
 
 **Snapshot**:

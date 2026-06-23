@@ -42,6 +42,18 @@ spec:
             env:
             - name: NAMESPACE
               value: {{ .Release.Namespace | quote }}
+            - name: RELEASE_NAME
+              value: {{ .Release.Name | quote }}
+            - name: APP_NAME
+              value: {{ .Values.repository.appName | quote }}
+            - name: RETENTION_KEEP_DAILY
+              value: {{ .Values.repository.retention.keepDaily | quote }}
+            - name: RETENTION_KEEP_WEEKLY
+              value: {{ .Values.repository.retention.keepWeekly | quote }}
+            - name: RETENTION_KEEP_MONTHLY
+              value: {{ .Values.repository.retention.keepMonthly | quote }}
+            - name: RETENTION_KEEP_YEARLY
+              value: {{ .Values.repository.retention.keepYearly | quote }}
             - name: SCALE_DOWN_ENABLED
               value: {{ .Values.scaleDown.enabled | quote }}
             - name: SCALE_DOWN_DEPLOYMENTS
