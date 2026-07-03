@@ -52,6 +52,7 @@ Run from `docker-compose/`:
 - Never commit secrets
 - Do not commit real credential files like `.env`, `.backup.env`, or generated secret YAMLs
 - Use External Secrets Operator + GCP Secret Manager for Kubernetes secrets
+- Every `ExternalSecret` MUST set `refreshInterval: "0"` (no periodic refresh) to avoid GCP Secret Manager access costs; re-sync the release to pick up a rotation. See `docs/security.md`.
 - Avoid printing secrets in logs or command output
 
 ## My Own Likings
@@ -97,3 +98,4 @@ Run from `docker-compose/`:
 - Backrest UI download button failed for vaultwarden SQLite from latest snapshot while raw `restic dump` from the Backrest pod works - caused by stale Backrest operation links indexed under old repo id `b2` after repo was renamed to `vaultwarden`; use fresh index/links or keep repo id stable
 - dev Backrest uninstall removed the PVC object despite trying to keep it - local-path-retain kept the PV/data, cleared the retained PV claimRef and rebound a standalone `dev-backrest-pvc`
 - vaultwarden snapshot `7f17b302` looked empty because it is the dev backup and its SQLite tables have 0 user/cipher rows; pro latest has data, use pro vaultwarden snapshots for real vault data
+- GCP Secret Manager showed ~20k requests/month - all ExternalSecrets refreshed hourly over static B2/restic/ntfy/backrest/tandem creds; set every ExternalSecret to `refreshInterval: "0"` (chart defaults + tandem values), made it a required repo rule in `docs/security.md`/`AGENTS.md`, rotations now picked up by re-syncing the release

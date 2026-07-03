@@ -11,7 +11,7 @@ ingress:
 externalSecrets:
   enabled: true
   secretStoreName: gcp-cluster-secretstore
-  refreshInterval: 24h
+  refreshInterval: "0"
   targetName: ""
   data:
     - secretKey: SUPABASE_SERVICE_ROLE_KEY

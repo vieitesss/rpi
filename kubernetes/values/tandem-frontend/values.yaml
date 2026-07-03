@@ -14,7 +14,7 @@ ingress:
 externalSecrets:
   enabled: true
   secretStoreName: gcp-cluster-secretstore
-  refreshInterval: 24h
+  refreshInterval: "0"
   targetName: ""
   data:
     - secretKey: NEXT_PUBLIC_SUPABASE_ANON_KEY

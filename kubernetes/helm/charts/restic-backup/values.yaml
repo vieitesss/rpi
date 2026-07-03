@@ -43,6 +43,7 @@ scaleDown:
 externalSecrets:
   enabled: true
   secretStoreName: gcp-cluster-secretstore
+  refreshInterval: "0"  # static B2/restic creds; 0 = no periodic refresh, re-sync release on rotation
   # GCP Secret Manager secret names
   b2AccountIdKey: rpi-b2-account-id
   b2AccountKeyKey: rpi-b2-account-key
