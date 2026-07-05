@@ -50,3 +50,6 @@ configFiles:
         - Tandem:
             href: https://tandem-pro.burro-ph.ts.net
             icon: mdi-account-group
+        - Forgejo:
+            href: https://forgejo.burro-ph.ts.net
+            icon: forgejo.png
