@@ -276,7 +276,15 @@ def main() -> None:
     if not args.files:
         ap.error("provide at least one XLSX file")
 
-    records = [parse_file(p, args.scraped_at) for p in args.files]
+    records = []
+    for p in args.files:
+        if not zipfile.is_zipfile(p):
+            print(f"skip {p}: not an XLSX file (probably LinkedIn returned HTML/debug output)", file=sys.stderr)
+            continue
+        records.append(parse_file(p, args.scraped_at))
+    if not records:
+        raise SystemExit("no valid XLSX files parsed")
+
     if args.json:
         print(json.dumps(records, indent=2))
         return

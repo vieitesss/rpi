@@ -29,8 +29,8 @@ LI_AT='paste-li_at-value' node cookie.mjs   # writes storageState.json
 node scrape.mjs --list    # step (a): list last-month post URLs
 node scrape.mjs           # step (b): download one post's export into out/
 python3 parse_xlsx.py --self-test
-python3 parse_xlsx.py out/*.xlsx > out/load.sql
-python3 parse_xlsx.py out/*.xlsx --psql 'kubectl exec -i -n dev deploy/dev-postgres -- psql -U postgres -d linkedin -v ON_ERROR_STOP=1'
+python3 parse_xlsx.py out/SinglePostAnalytics_*.xlsx > out/load.sql
+python3 parse_xlsx.py out/SinglePostAnalytics_*.xlsx --psql 'kubectl exec -i -n dev deploy/dev-postgres -- psql -U postgres -d linkedin -v ON_ERROR_STOP=1'
 ```
 
 ## What is empirically established vs. unverified
