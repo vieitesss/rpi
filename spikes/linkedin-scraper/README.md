@@ -12,6 +12,8 @@ export (same file as `example-data.xlsx`)?
 - `login.mjs` — one-time in-browser manual login → writes `storageState.json`.
   Often blocked by *"This browser or app may not be secure"*; use `cookie.mjs`.
 - `scrape.mjs` — enumerate last-month posts, download one post's XLSX export.
+- `parse_xlsx.py` — parse downloaded XLSX exports and emit/load Postgres upserts
+  into `post_metrics` + `post_demographics`.
 - `.gitignore` — keeps `storageState.json` and `out/` out of git (session cookie
   is a credential; never commit it).
 
@@ -26,6 +28,9 @@ LI_AT='paste-li_at-value' node cookie.mjs   # writes storageState.json
 # (fallback, often bot-blocked: `node login.mjs`)
 node scrape.mjs --list    # step (a): list last-month post URLs
 node scrape.mjs           # step (b): download one post's export into out/
+python3 parse_xlsx.py --self-test
+python3 parse_xlsx.py out/*.xlsx > out/load.sql
+python3 parse_xlsx.py out/*.xlsx --psql 'kubectl exec -i -n dev deploy/dev-postgres -- psql -U postgres -d linkedin -v ON_ERROR_STOP=1'
 ```
 
 ## What is empirically established vs. unverified
