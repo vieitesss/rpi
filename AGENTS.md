@@ -1,8 +1,3 @@
-# AGENTS.md
-
-This is a shared file for both the project owner and the coding agent.
-Use it as the source of truth for project working agreements.
-
 ## Project Scope and Usage
 
 ### Scope
