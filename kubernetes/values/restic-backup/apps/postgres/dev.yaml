@@ -1,0 +1,24 @@
+# Restic backup for the shared Postgres in dev.
+# Full-PVC backup with the deployment scaled down so PGDATA is quiesced
+# (decision: ticket #1). Manual-only in dev (schedule suspended).
+
+repository:
+  appName: postgres
+
+schedule: "45 23 * * *"  # staggered after vaultwarden/tandem/anythingllm
+
+notifications:
+  enabled: true
+
+cronjob:
+  suspend: true
+
+pvcs:
+  - name: dev-postgres-pvc
+    mountPath: /backup/postgres
+
+# Quiesce Postgres for a clean file-level PGDATA backup.
+scaleDown:
+  enabled: true
+  deployments:
+    - dev-postgres

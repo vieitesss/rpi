@@ -1,0 +1,23 @@
+# Restic backup for Grafana in dev.
+# Full-PVC backup with the deployment scaled down so grafana.db (SQLite:
+# dashboards + datasource config) is quiesced. Manual-only in dev (suspended).
+
+repository:
+  appName: grafana
+
+schedule: "0 0 * * *"  # staggered after postgres (23:45)
+
+notifications:
+  enabled: true
+
+cronjob:
+  suspend: true
+
+pvcs:
+  - name: dev-grafana-pvc
+    mountPath: /backup/grafana
+
+scaleDown:
+  enabled: true
+  deployments:
+    - dev-grafana

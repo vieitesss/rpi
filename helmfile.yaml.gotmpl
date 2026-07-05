@@ -58,6 +58,21 @@ releases:
   needs:
   - external-secrets/external-secrets
 {{ end }}
+- name: postgres
+  inherit:
+  - template: default
+  needs:
+  - external-secrets/external-secrets
+
+{{ if eq .Environment.Name "dev" }}
+- name: grafana
+  inherit:
+  - template: default
+  needs:
+  - external-secrets/external-secrets
+  - postgres
+{{ end }}
+
 - name: tandem-backend
   inherit:
   - template: default
@@ -115,4 +130,24 @@ releases:
   - external-secrets/external-secrets
   values:
   - ./kubernetes/values/restic-backup/apps/forgejo/{{ .Environment.Name }}.yaml
+{{ end }}
+
+{{ if eq .Environment.Name "dev" }}
+- name: restic-backup-postgres
+  chart: ./kubernetes/helm/charts/restic-backup
+  namespace: {{ .Environment.Name }}
+  needs:
+  - postgres
+  - external-secrets/external-secrets
+  values:
+  - ./kubernetes/values/restic-backup/apps/postgres/{{ .Environment.Name }}.yaml
+
+- name: restic-backup-grafana
+  chart: ./kubernetes/helm/charts/restic-backup
+  namespace: {{ .Environment.Name }}
+  needs:
+  - grafana
+  - external-secrets/external-secrets
+  values:
+  - ./kubernetes/values/restic-backup/apps/grafana/{{ .Environment.Name }}.yaml
 {{ end }}

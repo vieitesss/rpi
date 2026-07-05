@@ -1,0 +1,50 @@
+# Grafana for the self-tracking dashboards (LinkedIn + Fitbit).
+# Reads the shared Postgres (ticket #1/#12) as a datasource. Private on Tailnet.
+deployment:
+  image: grafana/grafana:11.6.1
+  resources:
+    requests:
+      memory: "128Mi"
+      cpu: "100m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+  # ponytail: run as root so Grafana can write /var/lib/grafana on a fresh
+  # root-owned local-path PVC. Single-tenant private instance; upgrade path is
+  # a chart-level pod fsGroup if we ever need non-root. Grafana image default
+  # uid 472 cannot write the mount otherwise.
+  securityContext:
+    runAsUser: 0
+  env:
+    - name: GF_SECURITY_ADMIN_USER
+      value: admin
+    # GF_SECURITY_ADMIN_PASSWORD comes from the external secret (envFrom).
+  readinessProbe:
+    httpGet:
+      path: /api/health
+      port: 3000
+    initialDelaySeconds: 15
+    periodSeconds: 10
+
+service:
+  port: 80
+  targetPort: 3000
+
+# Private admin UI — keep off the public internet, Tailnet only.
+ingress:
+  tags: "tag:private"
+
+# Dashboards + datasource config live in Grafana's SQLite on this PVC (decision:
+# ticket #2 — clicked/API-provisioned, not file-provisioned, because the generic
+# chart can't mount provisioning files cleanly). Backed up by restic-backup-grafana.
+pvc:
+  enabled: true
+  storage: "2Gi"
+  mountPath: /var/lib/grafana
+
+externalSecrets:
+  enabled: true
+  refreshInterval: "0"
+  data:
+    - secretKey: GF_SECURITY_ADMIN_PASSWORD
+      remoteKey: grafana_admin_password

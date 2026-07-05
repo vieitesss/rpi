@@ -1,0 +1,48 @@
+# Shared Postgres for the self-tracking dashboards (LinkedIn + Fitbit).
+# One instance, two databases: `linkedin` and `fitbit` (decision: ticket #1).
+# Pinned to a specific major version — raw PGDATA files are NOT portable across
+# Postgres majors, and restore uses the file-level restic PVC backup.
+deployment:
+  image: postgres:16.8
+  resources:
+    requests:
+      memory: "128Mi"
+      cpu: "100m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+  # PGDATA in a subdir of the mount so the PVC root (lost+found etc.) never
+  # blocks initdb on the local-path volume.
+  env:
+    - name: PGDATA
+      value: /var/lib/postgresql/data/pgdata
+    - name: POSTGRES_DB
+      value: linkedin
+    # POSTGRES_PASSWORD is supplied via the external secret (envFrom secretRef).
+    # ponytail: the `fitbit` DB is created once with `CREATE DATABASE fitbit`
+    # after first deploy; it then lives in PGDATA and rides the PVC/restic backup.
+  readinessProbe:
+    exec:
+      command: ["pg_isready", "-U", "postgres", "-d", "linkedin"]
+    initialDelaySeconds: 10
+    periodSeconds: 10
+
+service:
+  port: 5432
+  targetPort: 5432
+
+# Internal-only datastore — no Tailnet ingress.
+ingress:
+  enabled: false
+
+pvc:
+  enabled: true
+  storage: "5Gi"
+  mountPath: /var/lib/postgresql/data
+
+externalSecrets:
+  enabled: true
+  refreshInterval: "0"
+  data:
+    - secretKey: POSTGRES_PASSWORD
+      remoteKey: postgres_password

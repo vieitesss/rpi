@@ -1,0 +1,3 @@
+# dev overrides for Grafana. Tailnet hostname only; same image/config as shared.
+ingress:
+  hostname: grafana-dev
