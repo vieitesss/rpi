@@ -22,12 +22,8 @@ pvc:
   accessModes:
     - ReadWriteOnce
 
-externalSecrets:
-  enabled: true
-
 cm:
   data:
-    SUPABASE_URL: https://jtrscdyfuzcccbgvojgb.supabase.co
     PGLITE_DATA_DIR: /data/pglite
     PGLITE_SNAPSHOT_PATH: /data/tandem-db.tar
     PGLITE_SNAPSHOT_INTERVAL_MS: "3600000"

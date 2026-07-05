@@ -20,6 +20,7 @@ This repository is a homelab setup for a Raspberry Pi with:
 - Use External Secrets Operator + GCP Secret Manager for Kubernetes secrets
 - Every `ExternalSecret` MUST set `refreshInterval: "0"` (no periodic refresh) to avoid GCP Secret Manager access costs; re-sync the release to pick up a rotation. See `docs/security.md`.
 - Avoid printing secrets in logs or command output
+- Do NOT create new GCP Secret Manager secrets without explicit consent. Keep the total number of active secrets at 6 or less (GCP free tier). Before adding any secret, count existing ones (`gcloud secrets list`); if creating it would reach 6 or more, stop and ask first. Prefer reusing/combining existing secrets over adding new ones.
 
 ## My Own Likings
 - Keep the codebase clean and organized
@@ -67,3 +68,4 @@ This repository is a homelab setup for a Raspberry Pi with:
 - Homepage dashboard (`home`) CrashLoopBackOff / UI "API Error" - mounting the config ConfigMap as the whole `/app/config` made it read-only, so Homepage crashed each time it tried to seed a skeleton file it wanted (whack-a-mole: kubernetes.yaml, then proxmox.yaml...). Fix: mount each config file individually via `subPath` so the directory stays writable (container layer) and Homepage seeds the rest itself; only `settings.yaml`/`services.yaml` are supplied
 - generic chart couldn't mount config *files* (only env via `cm.data`) - added reusable `configFiles` map + `configmap-files.yaml` template; deployment renders one `subPath` volumeMount per file under `configFilesMountPath`, used by the `home` Homepage release
 - LinkedIn scraper hit authwall after refreshing `li_at` because `launchPersistentContext` ignored `storageState` - switched to `chromium.launch()` plus `browser.newContext({ storageState })`
+- pro tandem ExternalSecrets kept failing `SecretSyncedError` for `supabase_service_role_key`/`supabase_anon_key` which no longer exist (tandem moved to local PGlite, active whenever `PGLITE_DATA_DIR` is set) - removed the supabase `externalSecrets` blocks and `SUPABASE_URL`/`NEXT_PUBLIC_SUPABASE_URL` config from tandem-backend/tandem-frontend values, synced pro, pods restarted 1/1; also deleted the unused `tailscale_auth_client` GCP secret (operator reads OAuth from k8s `operator-oauth`, not GCP) to stay within the 6-secret free tier

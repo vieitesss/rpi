@@ -11,11 +11,6 @@ ingress:
   domain: burro-ph.ts.net
   tags: "tag:shared"
 
+# Supabase removed — no external secrets needed.
 externalSecrets:
-  enabled: true
-  secretStoreName: gcp-cluster-secretstore
-  refreshInterval: "0"
-  targetName: ""
-  data:
-    - secretKey: NEXT_PUBLIC_SUPABASE_ANON_KEY
-      remoteKey: supabase_anon_key
+  enabled: false
