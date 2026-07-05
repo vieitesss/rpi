@@ -15,3 +15,28 @@ spec:
   selector:
     app: {{ include "generic.fullName" . }}
 {{- end }}
+{{- if and .Values.lbService .Values.lbService.enabled }}
+---
+# Optional tailscale-exposed LoadBalancer (e.g. git SSH on a second hostname)
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "generic.fullName" . }}-lb
+  labels:
+    app: {{ include "generic.fullName" . }}
+  annotations:
+    tailscale.com/hostname: {{ .Values.lbService.hostname | default (printf "%s-lb" .Release.Name) }}
+    {{- if .Values.lbService.tags }}
+    tailscale.com/tags: {{ .Values.lbService.tags }}
+    {{- end }}
+spec:
+  type: LoadBalancer
+  loadBalancerClass: tailscale
+  ports:
+    - port: {{ .Values.lbService.port }}
+      targetPort: {{ .Values.lbService.targetPort | default .Values.lbService.port }}
+      protocol: TCP
+      name: {{ .Values.lbService.name | default "lb" }}
+  selector:
+    app: {{ include "generic.fullName" . }}
+{{- end }}

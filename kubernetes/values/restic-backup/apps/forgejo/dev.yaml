@@ -1,0 +1,20 @@
+# Restic backup configuration for Forgejo in dev namespace
+
+repository:
+  appName: forgejo
+
+schedule: "45 23 * * *"
+
+notifications:
+  enabled: true
+
+# PVCs to backup (SQLite DB + repos + SSH host key all live on /data)
+pvcs:
+  - name: dev-forgejo-pvc
+    mountPath: /backup/forgejo
+
+# Deployments to scale down before backup
+# Disabled for forgejo - SQLite WAL mode handles live backups safely
+scaleDown:
+  enabled: false
+  deployments: []
