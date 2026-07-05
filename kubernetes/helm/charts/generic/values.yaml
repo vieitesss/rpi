@@ -1,6 +1,11 @@
 cm:
   data: {}
 
+# File-oriented ConfigMap mounted at configFilesMountPath (filename: contents).
+# Use for apps that read YAML/config files from a directory (e.g. Homepage).
+configFiles: {}
+configFilesMountPath: ""
+
 secret:
   data: {}
 

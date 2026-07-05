@@ -37,6 +37,11 @@ spec:
           persistentVolumeClaim:
             claimName: {{ include "generic.fullName" . }}-pvc
         {{- end }}
+        {{- if .Values.configFiles }}
+        - name: config-files
+          configMap:
+            name: {{ include "generic.fullName" . }}-files
+        {{- end }}
         {{- with .Values.deployment.extraVolumes }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
@@ -71,6 +76,14 @@ spec:
           {{- if .Values.pvc.enabled }}
           - name: {{ $volumeName }}
             mountPath: {{ .Values.pvc.mountPath }}
+          {{- end }}
+          {{- if .Values.configFiles }}
+          {{- range $name, $contents := .Values.configFiles }}
+          - name: config-files
+            mountPath: {{ $.Values.configFilesMountPath | required "configFilesMountPath is required when configFiles is set" }}/{{ $name }}
+            subPath: {{ $name }}
+            readOnly: true
+          {{- end }}
           {{- end }}
           {{- with .Values.deployment.extraVolumeMounts }}
           {{- toYaml . | nindent 10 }}
