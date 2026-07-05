@@ -1,33 +1,30 @@
 # Raspberry Pi Homelab
 
+GitOps homelab for a single Raspberry Pi. Services are deployed on Kubernetes
+(K3s + Helmfile) from a shared Helm chart, with secrets from GCP Secret Manager
+and per-service backups to Backblaze B2.
+
 ## Documentation
 
-- [README.md](./system/README.md) in the `system` directory that shows how to set up the services.
-- [This post](https://vieitesss.github.io/posts/Deploy-services-with-Tailscale-sidecar/) on how to configure Tailscale and run the Docker Compose version of the services.
+- [`AGENTS.md`](./AGENTS.md) — conventions, workflow, and operational notes.
+- [`CONTEXT.md`](./CONTEXT.md) — project glossary.
+- [`docs/`](./docs) — security model, backups, and design records.
+- [`system/README.md`](./system/README.md) — host-level systemd/apt configuration.
 
 ## Prerequisites
 
-- Docker
-- Docker Compose
+- K3s
+- Helmfile
 - Tailscale account
 
 ## Configuration
 
-### Required
-
-Set the environment variables in the `.env` file.
+Set the Tailscale auth key used by the operator install script:
 
 ```bash
 cp example.env .env
 ```
 
-### Optional
-
-> [!WARNING]
-> If you are not going to use or don't have a B2 backup configured, remove any usage in the docker-compose file of the environment variables that are set in the `backup.env.example` configuration file.
-
-Set the environment variables in the `.backup.env` file.
-
-```bash
-cp backup.env.example .backup.env
-```
+Application secrets are not stored in env files — they live in GCP Secret
+Manager and are pulled into the cluster via External Secrets. See
+[`docs/security.md`](./docs/security.md).

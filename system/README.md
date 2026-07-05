@@ -1,6 +1,7 @@
 # System Configuration
 
-This directory contains system-level configuration files to automate updates, manage Docker services on boot, and handle backups.
+This directory contains host-level configuration files for automatic updates
+and boot-time notifications.
 
 ## Directory Contents
 
@@ -8,9 +9,7 @@ This directory contains system-level configuration files to automate updates, ma
 - **`02periodic`**: Configures the system to automatically download and install security updates daily.
 
 ### `/etc/systemd/system/`
-- **`rpi-services@.service`**: A template service that starts/stops your Docker Compose stack automatically when the Pi boots/shuts down.
-- **`rpi-backup@.service`**: The logic script to backup Docker volumes.
-- **`rpi-backup@.timer`**: A template scheduler that triggers the backup service daily for a specific user.
+- **`notify.service`**: Sends a notification on boot once K3s and the network are ready.
 
 ## Installation & Usage
 
@@ -38,14 +37,8 @@ Reload the daemon to recognize the new files:
 sudo systemctl daemon-reload
 ```
 
-**Enable Docker Services on Boot:**
+**Enable Boot Notification:**
 
 ```bash
-sudo systemctl enable --now rpi-services@<your-user-name>
-```
-
-**Enable Daily Backups:**
-
-```bash
-sudo systemctl enable --now rpi-backup@<your-user-name>.timer
+sudo systemctl enable --now notify.service
 ```

@@ -30,12 +30,6 @@ The single shared Helm chart most services deploy through
 bespoke charts.
 _Avoid_: The template (Helmfile `templates:` is a different concept)
 
-**Legacy stack**:
-The older Docker Compose + systemd deployment path (`docker-compose/`,
-`system/`), kept for reference and older workflows. New work targets Kubernetes
-unless stated otherwise.
-_Avoid_: The old setup, compose stack (used loosely)
-
 ## Secrets
 
 **Secret Manager**:

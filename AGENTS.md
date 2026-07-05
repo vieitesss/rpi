@@ -4,7 +4,7 @@
 This repository is a homelab setup for a Raspberry Pi with:
 - Kubernetes (K3s + Helmfile) as the current deployment path
 - Generic Helm chart-based services in `kubernetes/values/<service>/`
-- Legacy Docker Compose and systemd assets for older workflows
+- Host-level systemd/apt assets in `system/` (boot notification, auto-updates)
 
 ### Stack and Conventions
 - Prefer small, declarative changes
