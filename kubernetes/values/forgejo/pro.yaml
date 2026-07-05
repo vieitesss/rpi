@@ -1,0 +1,11 @@
+ingress:
+  hostname: forgejo
+
+lbService:
+  hostname: forgejo-git
+
+cm:
+  data:
+    FORGEJO__server__DOMAIN: forgejo.burro-ph.ts.net
+    FORGEJO__server__ROOT_URL: https://forgejo.burro-ph.ts.net/
+    FORGEJO__server__SSH_DOMAIN: forgejo-git.burro-ph.ts.net

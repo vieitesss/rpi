@@ -42,6 +42,11 @@ releases:
   inherit:
   - template: default
 {{ end }}
+{{ if or (eq .Environment.Name "dev") (eq .Environment.Name "pro") }}
+- name: forgejo
+  inherit:
+  - template: default
+{{ end }}
 {{ if eq .Environment.Name "pro" }}
 - name: backrest
   inherit:
@@ -97,4 +102,13 @@ releases:
   - external-secrets/external-secrets
   values:
   - ./kubernetes/values/restic-backup/apps/anythingllm/{{ .Environment.Name }}.yaml
+
+- name: restic-backup-forgejo
+  chart: ./kubernetes/helm/charts/restic-backup
+  namespace: {{ .Environment.Name }}
+  needs:
+  - forgejo
+  - external-secrets/external-secrets
+  values:
+  - ./kubernetes/values/restic-backup/apps/forgejo/{{ .Environment.Name }}.yaml
 {{ end }}

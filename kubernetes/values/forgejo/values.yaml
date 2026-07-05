@@ -1,0 +1,40 @@
+deployment:
+  # ponytail: pinned Forgejo LTS; bump the tag to upgrade.
+  image: codeberg.org/forgejo/forgejo:11
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "100m"
+    limits:
+      memory: "1Gi"
+      cpu: "1000m"
+
+service:
+  port: 80
+  targetPort: 3000
+
+# Second tailscale-exposed service for git-SSH (host key persists on the /data PVC).
+lbService:
+  enabled: true
+  name: ssh
+  port: 22
+  targetPort: 22
+  tags: "tag:private"
+
+pvc:
+  enabled: true
+  storage: "10Gi"
+  mountPath: /data
+
+cm:
+  data:
+    # Forgejo reads GITEA_WORK_DIR=/data from the image; DB + repos live under /data.
+    FORGEJO__server__HTTP_PORT: "3000"
+    FORGEJO__database__DB_TYPE: sqlite3
+    FORGEJO__security__INSTALL_LOCK: "true"
+    FORGEJO__service__DISABLE_REGISTRATION: "true"
+
+ingress:
+  enabled: true
+  domain: burro-ph.ts.net
+  tags: "tag:private"
