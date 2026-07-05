@@ -31,6 +31,10 @@ releases:
   inherit:
   - template: default
 
+- name: home
+  inherit:
+  - template: default
+
 {{ if eq .Environment.Name "pro" }}
 - name: glances
   inherit:
