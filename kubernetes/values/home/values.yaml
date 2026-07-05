@@ -1,0 +1,48 @@
+deployment:
+  image: ghcr.io/gethomepage/homepage:latest
+  resources:
+    requests:
+      memory: "64Mi"
+      cpu: "50m"
+    limits:
+      memory: "128Mi"
+      cpu: "200m"
+
+service:
+  port: 80
+  targetPort: 3000
+
+ingress:
+  tags: "tag:private"
+
+# Files are mounted individually (subPath), so /app/config stays writable and
+# Homepage seeds the rest of its skeleton config itself.
+configFilesMountPath: /app/config
+configFiles:
+  settings.yaml: |
+    title: Home
+    headerStyle: clean
+    layout:
+      Apps:
+        style: row
+        columns: 3
+  services.yaml: |
+    - Apps:
+        - Vaultwarden:
+            href: https://vaultwarden.burro-ph.ts.net
+            icon: vaultwarden.png
+        - AnythingLLM:
+            href: https://ai.burro-ph.ts.net
+            icon: anythingllm.png
+        - IT-Tools:
+            href: https://ittools.burro-ph.ts.net
+            icon: it-tools.png
+        - Glances:
+            href: https://glances.burro-ph.ts.net
+            icon: glances.png
+        - Backrest:
+            href: https://backrest.burro-ph.ts.net
+            icon: backrest.png
+        - Tandem:
+            href: https://tandem-pro.burro-ph.ts.net
+            icon: mdi-account-group

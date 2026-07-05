@@ -1,0 +1,6 @@
+ingress:
+  hostname: home
+
+cm:
+  data:
+    HOMEPAGE_ALLOWED_HOSTS: home.burro-ph.ts.net
