@@ -26,6 +26,10 @@ configFiles:
       Apps:
         style: row
         columns: 3
+  widgets.yaml: |
+    - search:
+        provider: brave
+        target: _blank
   services.yaml: |
     - Apps:
         - Vaultwarden:
