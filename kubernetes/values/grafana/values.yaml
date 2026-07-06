@@ -47,4 +47,5 @@ externalSecrets:
   refreshInterval: "0"
   data:
     - secretKey: GF_SECURITY_ADMIN_PASSWORD
-      remoteKey: grafana_admin_password
+      remoteKey: rpi_static_credentials
+      property: grafana_admin_password

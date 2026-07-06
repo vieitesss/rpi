@@ -45,4 +45,5 @@ externalSecrets:
   refreshInterval: "0"
   data:
     - secretKey: POSTGRES_PASSWORD
-      remoteKey: postgres_password
+      remoteKey: rpi_static_credentials
+      property: postgres_password
