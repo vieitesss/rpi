@@ -14,7 +14,7 @@
 // human's first run locks the real ones in. Treat every selector as suspect.
 
 import { chromium } from "playwright";
-import { mkdirSync } from "node:fs";
+import { mkdirSync, existsSync, writeFileSync } from "node:fs";
 
 const PROFILE = process.env.LI_PROFILE ?? "daniel-vieites";
 const OUT = new URL("./out/", import.meta.url).pathname;
@@ -30,16 +30,25 @@ const urnTime = (urn) => Number(BigInt((urn.match(/\d+/) || [0])[0]) >> 22n);
 
 async function enumeratePosts(page) {
   // Recent-activity feed of the target profile.
-  await page.goto(
-    `https://www.linkedin.com/in/${PROFILE}/recent-activity/all/`,
-    { waitUntil: "domcontentloaded" }
-  );
+  // A rejected session redirect-loops here; catch it and bail as an auth failure
+  // BEFORE the scroll loop so one run = one goto, never a suspicious storm.
+  try {
+    await page.goto(
+      `https://www.linkedin.com/in/${PROFILE}/recent-activity/all/`,
+      { waitUntil: "domcontentloaded" }
+    );
+  } catch (e) {
+    if (/ERR_TOO_MANY_REDIRECTS/.test(e.message)) {
+      throw new Error(`session rejected (redirect loop) at ${page.url()} — re-seed linkedin_li_at with a fresh storageState.`);
+    }
+    throw e;
+  }
   await pause(2000, 4000);
 
-  // Auth check: an invalid/expired cookie bounces to a login/authwall.
+  // Auth check: an invalid/expired session bounces to a login/authwall/consent.
   const url = page.url();
-  if (/\/(login|authwall|checkpoint)/.test(url)) {
-    throw new Error(`not authenticated — landed on ${url}. Refresh li_at via cookie.mjs.`);
+  if (/\/(login|authwall|checkpoint|consent)/.test(url)) {
+    throw new Error(`not authenticated — landed on ${url}. Re-seed linkedin_li_at with a fresh storageState.`);
   }
 
   // Candidate selectors for a post container (LinkedIn's DOM drifts — try several
@@ -162,15 +171,36 @@ async function dump(page, label) {
   if (controls.length) console.error("export controls:", controls);
 }
 
+// Session state rotates on a PVC like a real returning browser: seed it from the
+// secret on first run (empty PVC), then save it back after a successful visit so
+// LinkedIn's device cookies (bcookie/lidc/...) age naturally instead of looking
+// like a frozen stolen token replayed every week.
+const STATE_PATH = process.env.STATE_PATH ?? new URL("./storageState.json", import.meta.url).pathname;
+if (!existsSync(STATE_PATH)) {
+  const seed = process.env.LI_STATE?.trim();
+  if (!seed) {
+    console.error(`no session state at ${STATE_PATH} and LI_STATE unset — seed linkedin_li_at with a full storageState JSON.`);
+    process.exit(1);
+  }
+  writeFileSync(STATE_PATH, seed);
+}
+
+// UA must match the operator's real browser or the session looks like a bot.
+const UA = process.env.LI_UA ??
+  "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36";
+
 const browser = await chromium.launch({ headless: true });
 const ctx = await browser.newContext({
-  storageState: new URL("./storageState.json", import.meta.url).pathname,
+  storageState: STATE_PATH,
+  userAgent: UA,
   acceptDownloads: true,
 });
 try {
   mkdirSync(OUT, { recursive: true });
   const page = await ctx.newPage();
   const posts = await enumeratePosts(page);
+  // Session survived auth → persist rotated cookies back to the PVC.
+  writeFileSync(STATE_PATH, JSON.stringify(await ctx.storageState()));
   console.log(`enumerated ${posts.length} post(s):`);
   posts.forEach((p) => console.log("  " + p));
 

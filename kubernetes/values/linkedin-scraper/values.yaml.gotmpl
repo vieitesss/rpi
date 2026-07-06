@@ -1,0 +1,71 @@
+# Weekly LinkedIn analytics scraper for the self-tracking dashboards.
+# Dev-only until the map explicitly asks for pro.
+deployment:
+  enabled: false
+
+service:
+  enabled: false
+
+ingress:
+  enabled: false
+
+cm:
+  data:
+    LI_PROFILE: daniel-vieites
+    PGHOST: dev-postgres-svc
+    PGPORT: "5432"
+    PGDATABASE: linkedin
+    PGUSER: postgres
+    NAMESPACE: dev
+    NOTIFICATIONS_ENABLED: "true"
+    NTFY_URL: https://ntfy.sh
+    PLAYWRIGHT_VERSION: "1.53.0"
+    STATE_PATH: /data/storageState.json
+    # Match the operator's real browser UA; overriding here avoids a bot-looking session.
+    LI_UA: "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+
+externalSecrets:
+  enabled: true
+  refreshInterval: "0"
+  data:
+    # Full browser storageState JSON (all cookies + localStorage), not a bare token.
+    - secretKey: LI_STATE
+      remoteKey: linkedin_li_at
+    - secretKey: PGPASSWORD
+      remoteKey: rpi_static_credentials
+      property: postgres_password
+    - secretKey: NTFY_TOPIC
+      remoteKey: ntfy_backup_error
+
+configFilesMountPath: /scripts
+configFiles:
+  run-cron.sh: |
+{{ readFile "run-cron.sh" | indent 4 }}
+  scrape.mjs: |
+{{ readFile "../../../spikes/linkedin-scraper/scrape.mjs" | indent 4 }}
+  parse_xlsx.py: |
+{{ readFile "../../../spikes/linkedin-scraper/parse_xlsx.py" | indent 4 }}
+
+# Rotating session state (storageState.json) survives between weekly runs.
+pvc:
+  enabled: true
+  storage: "1Gi"
+  mountPath: /data
+
+cronJob:
+  enabled: true
+  schedule: "15 8 * * 1" # Mondays 08:15 UTC, low-volume weekly LinkedIn scrape.
+  timeZone: Etc/UTC
+  # A failed auth must NOT retry — each retry is another suspicious login that got
+  # the account signed out. One attempt per week, then notify and stop.
+  backoffLimit: 0
+  restartPolicy: Never
+  image: mcr.microsoft.com/playwright:v1.53.0-noble
+  command: ["/bin/bash", "/scripts/run-cron.sh"]
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "250m"
+    limits:
+      memory: "1Gi"
+      cpu: "1000m"

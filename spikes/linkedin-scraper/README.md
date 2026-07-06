@@ -7,10 +7,10 @@ export (same file as `example-data.xlsx`)?
 
 ## Files
 
-- `cookie.mjs` — build `storageState.json` from a `li_at` cookie copied out of
-  your real browser. **Preferred** — LinkedIn bot-detects the automated login.
 - `login.mjs` — one-time in-browser manual login → writes `storageState.json`.
-  Often blocked by *"This browser or app may not be secure"*; use `cookie.mjs`.
+  Use this to capture the **full** browser session (all cookies + localStorage)
+  that seeds the GCP `linkedin_li_at` secret. A bare `li_at`-only cookie looks
+  like a stolen token and gets the account signed out.
 - `scrape.mjs` — enumerate last-month posts, download one post's XLSX export.
 - `parse_xlsx.py` — parse downloaded XLSX exports and emit/load Postgres upserts
   into `post_metrics` + `post_demographics`.
@@ -22,10 +22,9 @@ export (same file as `example-data.xlsx`)?
 ```bash
 cd spikes/linkedin-scraper
 npm i playwright && npx playwright install chromium
-# Preferred: log into linkedin.com in your normal browser, then DevTools →
-# Application → Cookies → https://www.linkedin.com → copy the `li_at` value.
-LI_AT='paste-li_at-value' node cookie.mjs   # writes storageState.json
-# (fallback, often bot-blocked: `node login.mjs`)
+# Capture your FULL browser session once (all cookies + localStorage):
+node login.mjs           # writes storageState.json
+# That storageState.json is the seed for the GCP `linkedin_li_at` secret.
 node scrape.mjs --list    # step (a): list last-month post URLs
 node scrape.mjs           # step (b): download one post's export into out/
 python3 parse_xlsx.py --self-test
@@ -62,9 +61,10 @@ python3 parse_xlsx.py out/SinglePostAnalytics_*.xlsx --psql 'kubectl exec -i -n 
   replay), human-like jittered pacing, headless single session. Cadence is
   **weekly**, low volume — the lowest-footprint shape. Risk is real but bounded;
   worst case is an account restriction on a throwaway/personal profile.
-- **Cookie expiry:** `storageState.json` expires (days–weeks). Re-run `login.mjs`
-  to refresh. Detecting expiry mid-run (redirect to /login) and alerting is map
-  Fog ("cookie-expiry detection + re-auth flow"), deferred until after this gate.
+- **Cookie expiry:** `storageState.json` rotates on a PVC each run (the cron saves
+  `context.storageState()` back after a successful visit), so cookies age like a
+  real returning browser. When the session finally dies, re-run `login.mjs` and
+  re-seed the `linkedin_li_at` secret with the fresh full storageState.
 
 ## Verdict
 

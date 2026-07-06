@@ -71,6 +71,15 @@ releases:
   needs:
   - external-secrets/external-secrets
   - postgres
+
+- name: linkedin-scraper
+  chart: ./kubernetes/helm/charts/generic
+  namespace: {{ .Environment.Name }}
+  needs:
+  - external-secrets/external-secrets
+  - postgres
+  values:
+  - ./kubernetes/values/linkedin-scraper/values.yaml.gotmpl
 {{ end }}
 
 - name: tandem-backend
