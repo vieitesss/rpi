@@ -19,7 +19,7 @@ externalSecrets:
 deployment:
   enabled: true
   replicas: 1
-  # required
+  # required when deployment.enabled=true and cronJob.image is empty
   image: ""
   hostPID: false
   strategy: {}
@@ -35,6 +35,25 @@ deployment:
   startupProbe: {}
   securityContext: {}
   initContainers: []
+  extraVolumes: []
+  extraVolumeMounts: []
+
+cronJob:
+  enabled: false
+  schedule: "0 0 * * *"
+  timeZone: "Etc/UTC"
+  suspend: false
+  concurrencyPolicy: Forbid
+  restartPolicy: OnFailure
+  backoffLimit: 6 # k8s default; set 0 for jobs where a failed run must not retry.
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  image: ""
+  imagePullPolicy: IfNotPresent
+  command: []
+  args: []
+  env: []
+  resources: {}
   extraVolumes: []
   extraVolumeMounts: []
 

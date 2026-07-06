@@ -1,0 +1,94 @@
+{{- if .Values.cronJob.enabled }}
+{{- $fullName := include "generic.fullName" . }}
+{{- $volumeName := printf "%s-data" $fullName }}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ $fullName }}
+  labels:
+    app: {{ $fullName }}
+spec:
+  schedule: {{ .Values.cronJob.schedule | quote }}
+  timeZone: {{ .Values.cronJob.timeZone | quote }}
+  suspend: {{ .Values.cronJob.suspend }}
+  successfulJobsHistoryLimit: {{ .Values.cronJob.successfulJobsHistoryLimit }}
+  failedJobsHistoryLimit: {{ .Values.cronJob.failedJobsHistoryLimit }}
+  concurrencyPolicy: {{ .Values.cronJob.concurrencyPolicy }}
+  jobTemplate:
+    spec:
+      backoffLimit: {{ .Values.cronJob.backoffLimit }}
+      template:
+        metadata:
+          labels:
+            app: {{ $fullName }}
+        spec:
+          restartPolicy: {{ .Values.cronJob.restartPolicy }}
+          {{- if or .Values.pvc.enabled .Values.configFiles .Values.cronJob.extraVolumes }}
+          volumes:
+            {{- if .Values.pvc.enabled }}
+            - name: {{ $volumeName }}
+              persistentVolumeClaim:
+                claimName: {{ include "generic.fullName" . }}-pvc
+            {{- end }}
+            {{- if .Values.configFiles }}
+            - name: config-files
+              configMap:
+                name: {{ include "generic.fullName" . }}-files
+                defaultMode: 0755
+            {{- end }}
+            {{- with .Values.cronJob.extraVolumes }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          {{- end }}
+          containers:
+          - name: {{ .Release.Name }}
+            image: {{ default .Values.deployment.image .Values.cronJob.image | required "cronJob.image or deployment.image is required" }}
+            imagePullPolicy: {{ .Values.cronJob.imagePullPolicy }}
+            {{- with .Values.cronJob.command }}
+            command:
+              {{- toYaml . | nindent 14 }}
+            {{- end }}
+            {{- with .Values.cronJob.args }}
+            args:
+              {{- toYaml . | nindent 14 }}
+            {{- end }}
+            resources:
+              {{- toYaml (default .Values.deployment.resources .Values.cronJob.resources) | nindent 14 }}
+            {{- if or .Values.pvc.enabled .Values.configFiles .Values.cronJob.extraVolumeMounts }}
+            volumeMounts:
+              {{- if .Values.pvc.enabled }}
+              - name: {{ $volumeName }}
+                mountPath: {{ .Values.pvc.mountPath }}
+              {{- end }}
+              {{- if .Values.configFiles }}
+              {{- range $name, $contents := .Values.configFiles }}
+              - name: config-files
+                mountPath: {{ $.Values.configFilesMountPath | required "configFilesMountPath is required when configFiles is set" }}/{{ $name }}
+                subPath: {{ $name }}
+                readOnly: true
+              {{- end }}
+              {{- end }}
+              {{- with .Values.cronJob.extraVolumeMounts }}
+              {{- toYaml . | nindent 14 }}
+              {{- end }}
+            {{- end }}
+            {{- if or .Values.cm.data .Values.secret.data .Values.externalSecrets.enabled }}
+            envFrom:
+              {{- if .Values.cm.data }}
+              - configMapRef:
+                  name: {{ $fullName }}-cm
+              {{- end }}
+              {{- if .Values.secret.data }}
+              - secretRef:
+                  name: {{ $fullName }}-secret
+              {{- end }}
+              {{- if .Values.externalSecrets.enabled }}
+              - secretRef:
+                  name: {{ default (printf "%s-external-secret" $fullName) .Values.externalSecrets.targetName }}
+              {{- end }}
+            {{- end }}
+            {{- with .Values.cronJob.env }}
+            env:
+              {{- toYaml . | nindent 14 }}
+            {{- end }}
+{{- end }}
