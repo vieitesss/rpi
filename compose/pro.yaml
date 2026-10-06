@@ -1,0 +1,80 @@
+# pro: always on. Every image is pinned to an exact tag; promote by copying a
+# tag from dev.yaml once it has been tested there.
+# Ports bind to localhost only; the host's tailscaled serves them as Tailscale
+# Services (scripts/tailscale-serve.sh).
+name: rpi-pro
+
+x-service: &service
+  restart: unless-stopped
+  logging:
+    driver: local
+
+services:
+  vaultwarden:
+    image: vaultwarden/server:1.37.1
+    environment:
+      DOMAIN: https://vaultwarden.${TAILNET_DOMAIN:?}
+    ports:
+      - 127.0.0.1:9000:80
+
+  tandem-backend:
+    image: ghcr.io/vieitesss/tandem-backend:0.9.0
+    environment:
+      CORS_ORIGIN: https://tandem.${TAILNET_DOMAIN:?}
+    ports:
+      - 127.0.0.1:9011:4000
+
+  tandem-frontend:
+    image: ghcr.io/vieitesss/tandem-frontend:0.14.0
+    ports:
+      - 127.0.0.1:9010:3000
+
+  home:
+    environment:
+      HOMEPAGE_ALLOWED_HOSTS: home.${TAILNET_DOMAIN:?}
+    ports:
+      - 127.0.0.1:9020:3000
+
+  forgejo:
+    environment:
+      FORGEJO__server__DOMAIN: forgejo.${TAILNET_DOMAIN:?}
+      FORGEJO__server__ROOT_URL: https://forgejo.${TAILNET_DOMAIN:?}/
+      FORGEJO__server__SSH_DOMAIN: forgejo-git.${TAILNET_DOMAIN:?}
+    ports:
+      - 127.0.0.1:9040:3000
+      - 127.0.0.1:2222:22
+
+  glances:
+    <<: *service
+    image: nicolargo/glances:4.5.5-full
+    mem_limit: 256m
+    pid: host
+    environment:
+      GLANCES_OPT: -w
+    ports:
+      - 127.0.0.1:9030:61208
+
+  backrest:
+    <<: *service
+    image: garethgeorge/backrest:v1.14.1
+    hostname: backrest # restic records it on every snapshot
+    mem_limit: 512m
+    # B2_ACCOUNT_ID, B2_ACCOUNT_KEY, RPI_RESTIC_PASSWORD, NTFY_TOPIC
+    # (written by scripts/secrets.sh).
+    env_file: ${RPI_SECRETS:?}
+    environment:
+      BACKREST_DATA: /data
+      BACKREST_CONFIG: /config/config.json
+      XDG_CACHE_HOME: /cache
+      TZ: Etc/UTC
+    # config.json is Backrest's own file; `just deploy pro` merges the repos
+    # and plans from backrest/config.template.json into it.
+    volumes:
+      - ${RPI_DATA:?}/backrest/config:/config
+      - ${RPI_DATA:?}/backrest/data:/data
+      - ${RPI_DATA:?}/backrest/cache:/cache
+      - ${RPI_DATA:?}/vaultwarden:/backup/vaultwarden:ro
+      - ${RPI_DATA:?}/tandem:/backup/tandem:ro
+      - ${RPI_DATA:?}/forgejo:/backup/forgejo:ro
+    ports:
+      - 127.0.0.1:9050:9898

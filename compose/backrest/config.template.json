@@ -1,0 +1,182 @@
+{
+  "version": 6,
+  "instance": "backrest-instance",
+  "repos": [
+    {
+      "id": "vaultwarden",
+      "uri": "b2:${B2_BUCKET}:/kubernetes-pvcs/pro/vaultwarden",
+      "guid": "a24d506145365457478371b2be4f03716a043a75f52d6a46388943367b8de5a4",
+      "env": [
+        "RESTIC_PASSWORD=${RPI_RESTIC_PASSWORD}"
+      ],
+      "autoUnlock": true,
+      "prunePolicy": {
+        "schedule": {
+          "cron": "0 2 * * 0",
+          "clock": "CLOCK_UTC"
+        },
+        "maxUnusedPercent": 10
+      },
+      "checkPolicy": {
+        "schedule": {
+          "cron": "0 3 1 * *",
+          "clock": "CLOCK_UTC"
+        },
+        "structureOnly": true
+      },
+      "forgetPolicy": {
+        "schedule": {
+          "cron": "0 1 * * *",
+          "clock": "CLOCK_UTC"
+        },
+        "retention": {
+          "policyTimeBucketed": {
+            "daily": 7,
+            "weekly": 4,
+            "monthly": 6,
+            "yearly": 1
+          }
+        }
+      },
+      "hooks": [
+        {
+          "conditions": [
+            "CONDITION_ANY_ERROR"
+          ],
+          "actionCommand": {
+            "command": "curl -fsS -m 30 -H 'Title: Backrest {{ .Repo.Id }} failed' -H 'Priority: high' -H 'Tags: warning' -d {{ .ShellEscape .Summary }} \"https://ntfy.sh/${NTFY_TOPIC}\""
+          }
+        }
+      ]
+    },
+    {
+      "id": "tandem",
+      "uri": "b2:${B2_BUCKET}:/kubernetes-pvcs/pro/tandem",
+      "guid": "0f8aa4d1aa0590d90538451b0755e09460880fc0234b48a2d454ab8e7781e926",
+      "env": [
+        "RESTIC_PASSWORD=${RPI_RESTIC_PASSWORD}"
+      ],
+      "autoUnlock": true,
+      "prunePolicy": {
+        "schedule": {
+          "cron": "0 2 * * 0",
+          "clock": "CLOCK_UTC"
+        },
+        "maxUnusedPercent": 10
+      },
+      "checkPolicy": {
+        "schedule": {
+          "cron": "0 3 1 * *",
+          "clock": "CLOCK_UTC"
+        },
+        "structureOnly": true
+      },
+      "forgetPolicy": {
+        "schedule": {
+          "cron": "0 1 * * *",
+          "clock": "CLOCK_UTC"
+        },
+        "retention": {
+          "policyTimeBucketed": {
+            "daily": 7,
+            "weekly": 4,
+            "monthly": 6,
+            "yearly": 1
+          }
+        }
+      },
+      "hooks": [
+        {
+          "conditions": [
+            "CONDITION_ANY_ERROR"
+          ],
+          "actionCommand": {
+            "command": "curl -fsS -m 30 -H 'Title: Backrest {{ .Repo.Id }} failed' -H 'Priority: high' -H 'Tags: warning' -d {{ .ShellEscape .Summary }} \"https://ntfy.sh/${NTFY_TOPIC}\""
+          }
+        }
+      ]
+    },
+    {
+      "id": "forgejo",
+      "uri": "b2:${B2_BUCKET}:/kubernetes-pvcs/pro/forgejo",
+      "guid": "1cfffb9badfae80cd4043653be92f980918cf227f740308e614d15ddcb70efb8",
+      "env": [
+        "RESTIC_PASSWORD=${RPI_RESTIC_PASSWORD}"
+      ],
+      "autoUnlock": true,
+      "prunePolicy": {
+        "schedule": {
+          "cron": "0 2 * * 0",
+          "clock": "CLOCK_UTC"
+        },
+        "maxUnusedPercent": 10
+      },
+      "checkPolicy": {
+        "schedule": {
+          "cron": "0 3 1 * *",
+          "clock": "CLOCK_UTC"
+        },
+        "structureOnly": true
+      },
+      "forgetPolicy": {
+        "schedule": {
+          "cron": "0 1 * * *",
+          "clock": "CLOCK_UTC"
+        },
+        "retention": {
+          "policyTimeBucketed": {
+            "daily": 7,
+            "weekly": 4,
+            "monthly": 6,
+            "yearly": 1
+          }
+        }
+      },
+      "hooks": [
+        {
+          "conditions": [
+            "CONDITION_ANY_ERROR"
+          ],
+          "actionCommand": {
+            "command": "curl -fsS -m 30 -H 'Title: Backrest {{ .Repo.Id }} failed' -H 'Priority: high' -H 'Tags: warning' -d {{ .ShellEscape .Summary }} \"https://ntfy.sh/${NTFY_TOPIC}\""
+          }
+        }
+      ]
+    }
+  ],
+  "plans": [
+    {
+      "id": "vaultwarden",
+      "repo": "vaultwarden",
+      "paths": [
+        "/backup/vaultwarden"
+      ],
+      "schedule": {
+        "cron": "0 23 * * *",
+        "clock": "CLOCK_UTC"
+      }
+    },
+    {
+      "id": "tandem",
+      "repo": "tandem",
+      "paths": [
+        "/backup/tandem"
+      ],
+      "schedule": {
+        "cron": "15 23 * * *",
+        "clock": "CLOCK_UTC"
+      }
+    },
+    {
+      "id": "forgejo",
+      "repo": "forgejo",
+      "paths": [
+        "/backup/forgejo"
+      ],
+      "schedule": {
+        "cron": "45 23 * * *",
+        "clock": "CLOCK_UTC"
+      }
+    }
+  ]
+}

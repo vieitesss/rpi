@@ -1,0 +1,6 @@
+title: Home
+headerStyle: clean
+layout:
+  Apps:
+    style: row
+    columns: 3

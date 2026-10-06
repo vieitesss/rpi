@@ -1,0 +1,7 @@
+.env
+.backup.env
+secrets.env
+CLAUDE.md
+TASKS.md
+PLAN.md
+.archify/

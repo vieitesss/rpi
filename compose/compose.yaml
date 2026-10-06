@@ -1,0 +1,67 @@
+# Services shared by every Environment. Image tags, ports and URLs live in the
+# overlays: pro.yaml (always on) and dev.yaml (up to test, down after).
+# Run through `just deploy <env>`, which sets RPI_DATA=/srv/rpi/<env>.
+
+x-service: &service
+  restart: unless-stopped
+  logging:
+    driver: local # rotates by default (5 x 20 MB per container)
+
+services:
+  vaultwarden:
+    <<: *service
+    mem_limit: 256m
+    volumes:
+      - ${RPI_DATA:?}/vaultwarden:/data
+
+  tandem-backend:
+    <<: *service
+    mem_limit: 1g
+    environment:
+      # PGlite is single-process: never run two backends on one data dir.
+      PGLITE_DATA_DIR: /data/pglite
+      PGLITE_SNAPSHOT_PATH: /data/tandem-db.tar
+      PGLITE_SNAPSHOT_INTERVAL_MS: "3600000"
+    volumes:
+      - ${RPI_DATA:?}/tandem:/data
+    healthcheck:
+      test: ["CMD", "bun", "-e", "fetch('http://localhost:4000/health').then((r) => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  tandem-frontend:
+    <<: *service
+    mem_limit: 256m
+    environment:
+      # Server-side proxy for /api; stays on the compose network.
+      API_BASE_URL: http://tandem-backend:4000
+    depends_on:
+      tandem-backend:
+        condition: service_healthy
+
+  home:
+    <<: *service
+    image: ghcr.io/gethomepage/homepage:v2.4.0
+    mem_limit: 128m
+    environment:
+      HOMEPAGE_VAR_TAILNET_DOMAIN: ${TAILNET_DOMAIN:?} # links in services.yaml
+    # One file per mount so /app/config stays writable: Homepage seeds the
+    # rest of its skeleton config there and crashes if it cannot.
+    volumes:
+      - ./home/settings.yaml:/app/config/settings.yaml:ro
+      - ./home/widgets.yaml:/app/config/widgets.yaml:ro
+      - ./home/services.yaml:/app/config/services.yaml:ro
+
+  forgejo:
+    <<: *service
+    image: codeberg.org/forgejo/forgejo:11.0.15
+    mem_limit: 1g
+    environment:
+      FORGEJO__server__HTTP_PORT: "3000"
+      FORGEJO__database__DB_TYPE: sqlite3
+      FORGEJO__security__INSTALL_LOCK: "true"
+      FORGEJO__service__DISABLE_REGISTRATION: "true"
+    volumes:
+      - ${RPI_DATA:?}/forgejo:/data

@@ -1,0 +1,58 @@
+# dev: up to test, down after (`just deploy dev`, `just dev-down`). Holds the
+# candidate image tags. Its data in /srv/rpi/dev is separate from pro;
+# `just dev-seed <app>` replaces it with a pro snapshot.
+# Ports bind to localhost only; the host's tailscaled serves them on
+# https://<TAILNET_HOST>.<TAILNET_DOMAIN>:<port> (scripts/tailscale-serve.sh).
+name: rpi-dev
+
+services:
+  vaultwarden:
+    image: vaultwarden/server:1.37.1
+    environment:
+      DOMAIN: https://${TAILNET_HOST:?}.${TAILNET_DOMAIN:?}:8000
+    ports:
+      - 127.0.0.1:19000:80
+
+  tandem-backend:
+    image: ghcr.io/vieitesss/tandem-backend:0.8.1-c13e664a
+    environment:
+      CORS_ORIGIN: https://${TAILNET_HOST:?}.${TAILNET_DOMAIN:?}:8010
+    ports:
+      - 127.0.0.1:19011:4000
+
+  tandem-frontend:
+    image: ghcr.io/vieitesss/tandem-frontend:0.13.1-ee129977
+    environment:
+      NEXT_PUBLIC_SSE_BASE_URL: https://${TAILNET_HOST:?}.${TAILNET_DOMAIN:?}:8011
+    ports:
+      - 127.0.0.1:19010:3000
+
+  home:
+    environment:
+      HOMEPAGE_ALLOWED_HOSTS: ${TAILNET_HOST:?}.${TAILNET_DOMAIN:?}:8020
+    ports:
+      - 127.0.0.1:19020:3000
+
+  forgejo:
+    environment:
+      FORGEJO__server__DOMAIN: ${TAILNET_HOST:?}.${TAILNET_DOMAIN:?}
+      FORGEJO__server__ROOT_URL: https://${TAILNET_HOST:?}.${TAILNET_DOMAIN:?}:8040/
+      FORGEJO__server__SSH_DOMAIN: ${TAILNET_HOST:?}.${TAILNET_DOMAIN:?}
+      FORGEJO__server__SSH_PORT: "2223"
+      FORGEJO__server__SSH_LISTEN_PORT: "22"
+    ports:
+      - 127.0.0.1:19040:3000
+      - 127.0.0.1:12222:22
+
+  # One-off restic for `just dev-seed`; never started by `up`.
+  restic:
+    profiles: [seed]
+    image: garethgeorge/backrest:v1.14.1
+    entrypoint: [restic]
+    env_file:
+      - path: ${RPI_SECRETS:?}
+        required: false
+    environment:
+      RESTIC_PASSWORD_COMMAND: printenv RPI_RESTIC_PASSWORD
+    volumes:
+      - ${RPI_DATA:?}:/restore

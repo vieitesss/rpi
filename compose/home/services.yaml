@@ -1,0 +1,16 @@
+- Apps:
+    - Vaultwarden:
+        href: https://vaultwarden.{{HOMEPAGE_VAR_TAILNET_DOMAIN}}
+        icon: vaultwarden.png
+    - Glances:
+        href: https://glances.{{HOMEPAGE_VAR_TAILNET_DOMAIN}}
+        icon: glances.png
+    - Backrest:
+        href: https://backrest.{{HOMEPAGE_VAR_TAILNET_DOMAIN}}
+        icon: backrest.png
+    - Tandem:
+        href: https://tandem.{{HOMEPAGE_VAR_TAILNET_DOMAIN}}
+        icon: mdi-account-group
+    - Forgejo:
+        href: https://forgejo.{{HOMEPAGE_VAR_TAILNET_DOMAIN}}
+        icon: forgejo.png

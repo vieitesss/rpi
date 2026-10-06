@@ -1,0 +1,14 @@
+[Unit]
+Description=Notify on boot when services are ready
+After=docker.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=<user>
+WorkingDirectory=/home/<user>/rpi
+ExecStart=/home/<user>/rpi/scripts/notify.sh
+RemainAfterExit=no
+
+[Install]
+WantedBy=multi-user.target

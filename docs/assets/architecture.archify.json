@@ -1,0 +1,572 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Raspberry Pi Homelab \u2014 pro Environment",
+    "output": ".archify/architecture-homelab-20261006-145951/homelab.html",
+    "quality_profile": "showcase",
+    "repository": {
+      "url": "git@github.com:vieitesss/rpi",
+      "link_mode": "local-only",
+      "revision": "1498556b553f8617db43822267a8bdf17240b25c"
+    }
+  },
+  "components": [
+    {
+      "id": "devices",
+      "type": "external",
+      "label": "Tailnet devices",
+      "sublabel": "phone / laptop",
+      "pos": [
+        40,
+        282
+      ],
+      "size": [
+        120,
+        60
+      ],
+      "sources": [
+        {
+          "path": "docs/security.md",
+          "label": "network exposure"
+        }
+      ]
+    },
+    {
+      "id": "tailscaled",
+      "type": "security",
+      "label": "tailscaled",
+      "sublabel": "Tailscale Services :443",
+      "pos": [
+        290,
+        60
+      ],
+      "size": [
+        160,
+        504
+      ],
+      "sources": [
+        {
+          "path": "scripts/tailscale-serve.sh",
+          "line": 9,
+          "end_line": 22,
+          "label": "pro Services"
+        }
+      ]
+    },
+    {
+      "id": "home",
+      "type": "frontend",
+      "label": "Homepage",
+      "sublabel": "127.0.0.1:9020",
+      "pos": [
+        530,
+        60
+      ],
+      "size": [
+        150,
+        54
+      ],
+      "sources": [
+        {
+          "path": "compose/compose.yaml",
+          "line": 44,
+          "end_line": 53
+        },
+        {
+          "path": "compose/pro.yaml",
+          "line": 32,
+          "end_line": 36
+        }
+      ]
+    },
+    {
+      "id": "glances",
+      "type": "backend",
+      "label": "Glances",
+      "sublabel": "127.0.0.1:9030",
+      "pos": [
+        530,
+        150
+      ],
+      "size": [
+        150,
+        54
+      ],
+      "sources": [
+        {
+          "path": "compose/pro.yaml",
+          "line": 47,
+          "end_line": 55
+        }
+      ]
+    },
+    {
+      "id": "vaultwarden",
+      "type": "backend",
+      "label": "Vaultwarden",
+      "sublabel": "127.0.0.1:9000",
+      "pos": [
+        530,
+        240
+      ],
+      "size": [
+        150,
+        54
+      ],
+      "sources": [
+        {
+          "path": "compose/compose.yaml",
+          "line": 11,
+          "end_line": 15
+        },
+        {
+          "path": "compose/pro.yaml",
+          "line": 13,
+          "end_line": 18
+        }
+      ]
+    },
+    {
+      "id": "tandem_web",
+      "type": "frontend",
+      "label": "Tandem web",
+      "sublabel": "127.0.0.1:9010",
+      "pos": [
+        530,
+        330
+      ],
+      "size": [
+        150,
+        54
+      ],
+      "sources": [
+        {
+          "path": "compose/compose.yaml",
+          "line": 34,
+          "end_line": 42
+        },
+        {
+          "path": "compose/pro.yaml",
+          "line": 27,
+          "end_line": 30
+        }
+      ]
+    },
+    {
+      "id": "tandem_api",
+      "type": "backend",
+      "label": "Tandem API",
+      "sublabel": "127.0.0.1:9011 \u00b7 PGlite",
+      "pos": [
+        530,
+        420
+      ],
+      "size": [
+        150,
+        54
+      ],
+      "sources": [
+        {
+          "path": "compose/compose.yaml",
+          "line": 17,
+          "end_line": 32
+        },
+        {
+          "path": "compose/pro.yaml",
+          "line": 20,
+          "end_line": 25
+        }
+      ]
+    },
+    {
+      "id": "forgejo",
+      "type": "backend",
+      "label": "Forgejo",
+      "sublabel": ":9040 \u00b7 ssh :2222",
+      "pos": [
+        530,
+        510
+      ],
+      "size": [
+        150,
+        54
+      ],
+      "sources": [
+        {
+          "path": "compose/compose.yaml",
+          "line": 55,
+          "end_line": 65
+        },
+        {
+          "path": "compose/pro.yaml",
+          "line": 38,
+          "end_line": 45
+        }
+      ]
+    },
+    {
+      "id": "data",
+      "type": "database",
+      "label": "/srv/rpi/pro",
+      "sublabel": "one dir per service",
+      "pos": [
+        760,
+        240
+      ],
+      "size": [
+        150,
+        324
+      ],
+      "sources": [
+        {
+          "path": "scripts/deploy.sh",
+          "line": 13,
+          "end_line": 22,
+          "label": "data dirs"
+        }
+      ]
+    },
+    {
+      "id": "backrest",
+      "type": "backend",
+      "label": "Backrest",
+      "sublabel": "127.0.0.1:9050 \u00b7 restic",
+      "pos": [
+        760,
+        650
+      ],
+      "size": [
+        150,
+        60
+      ],
+      "sources": [
+        {
+          "path": "compose/pro.yaml",
+          "line": 57,
+          "end_line": 80
+        },
+        {
+          "path": "compose/backrest/config.template.json",
+          "line": 1,
+          "end_line": 51
+        }
+      ]
+    },
+    {
+      "id": "deploy",
+      "type": "backend",
+      "label": "just deploy pro",
+      "sublabel": "secrets.sh \u00b7 compose up",
+      "pos": [
+        760,
+        790
+      ],
+      "size": [
+        150,
+        60
+      ],
+      "sources": [
+        {
+          "path": "scripts/deploy.sh",
+          "line": 17,
+          "end_line": 44
+        },
+        {
+          "path": "justfile",
+          "line": 9,
+          "end_line": 11
+        }
+      ]
+    },
+    {
+      "id": "b2",
+      "type": "cloud",
+      "label": "Backblaze B2",
+      "sublabel": "restic repos",
+      "pos": [
+        1010,
+        650
+      ],
+      "size": [
+        140,
+        60
+      ],
+      "sources": [
+        {
+          "path": "compose/backrest/config.template.json",
+          "line": 7,
+          "label": "repo uri"
+        }
+      ]
+    },
+    {
+      "id": "gsm",
+      "type": "cloud",
+      "label": "GCP Secret Manager",
+      "sublabel": "read at deploy only",
+      "pos": [
+        1010,
+        790
+      ],
+      "size": [
+        140,
+        60
+      ],
+      "sources": [
+        {
+          "path": "scripts/secrets.sh",
+          "line": 1,
+          "end_line": 37
+        }
+      ]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "Raspberry Pi host",
+      "wraps": [
+        "tailscaled",
+        "home",
+        "glances",
+        "vaultwarden",
+        "tandem_web",
+        "tandem_api",
+        "forgejo",
+        "data",
+        "backrest",
+        "deploy"
+      ],
+      "pad": 22
+    }
+  ],
+  "connections": [
+    {
+      "from": "devices",
+      "to": "tailscaled",
+      "label": "HTTPS tailnet",
+      "variant": "emphasis"
+    },
+    {
+      "from": "tailscaled",
+      "to": "home",
+      "variant": "emphasis",
+      "fromSide": "right",
+      "toSide": "left",
+      "via": [
+        [
+          490,
+          312
+        ],
+        [
+          490,
+          87.0
+        ]
+      ]
+    },
+    {
+      "from": "tailscaled",
+      "to": "glances",
+      "variant": "emphasis",
+      "fromSide": "right",
+      "toSide": "left",
+      "via": [
+        [
+          490,
+          312
+        ],
+        [
+          490,
+          177.0
+        ]
+      ]
+    },
+    {
+      "from": "tailscaled",
+      "to": "vaultwarden",
+      "variant": "emphasis",
+      "fromSide": "right",
+      "toSide": "left",
+      "via": [
+        [
+          490,
+          312
+        ],
+        [
+          490,
+          267.0
+        ]
+      ]
+    },
+    {
+      "from": "tailscaled",
+      "to": "tandem_web",
+      "variant": "emphasis",
+      "fromSide": "right",
+      "toSide": "left",
+      "via": [
+        [
+          490,
+          312
+        ],
+        [
+          490,
+          357.0
+        ]
+      ]
+    },
+    {
+      "from": "tailscaled",
+      "to": "tandem_api",
+      "variant": "emphasis",
+      "fromSide": "right",
+      "toSide": "left",
+      "via": [
+        [
+          490,
+          312
+        ],
+        [
+          490,
+          447.0
+        ]
+      ]
+    },
+    {
+      "from": "tailscaled",
+      "to": "forgejo",
+      "variant": "emphasis",
+      "fromSide": "right",
+      "toSide": "left",
+      "via": [
+        [
+          490,
+          312
+        ],
+        [
+          490,
+          537.0
+        ]
+      ]
+    },
+    {
+      "from": "tailscaled",
+      "to": "backrest",
+      "variant": "emphasis",
+      "fromSide": "bottom",
+      "toSide": "left",
+      "via": [
+        [
+          370,
+          680
+        ]
+      ]
+    },
+    {
+      "from": "tandem_web",
+      "to": "tandem_api",
+      "label": "/api"
+    },
+    {
+      "from": "vaultwarden",
+      "to": "data",
+      "fromSide": "right",
+      "toSide": "left",
+      "via": [
+        [
+          720,
+          267.0
+        ],
+        [
+          720,
+          402
+        ]
+      ]
+    },
+    {
+      "from": "tandem_api",
+      "to": "data",
+      "fromSide": "right",
+      "toSide": "left",
+      "via": [
+        [
+          720,
+          447.0
+        ],
+        [
+          720,
+          402
+        ]
+      ]
+    },
+    {
+      "from": "forgejo",
+      "to": "data",
+      "fromSide": "right",
+      "toSide": "left",
+      "via": [
+        [
+          720,
+          537.0
+        ],
+        [
+          720,
+          402
+        ]
+      ]
+    },
+    {
+      "from": "backrest",
+      "to": "data",
+      "label": "reads :ro"
+    },
+    {
+      "from": "backrest",
+      "to": "b2",
+      "label": "snapshots",
+      "variant": "security"
+    },
+    {
+      "from": "deploy",
+      "to": "backrest",
+      "label": "env_file",
+      "variant": "dashed"
+    },
+    {
+      "from": "deploy",
+      "to": "gsm",
+      "label": "pull secrets",
+      "variant": "security"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Environments",
+      "items": [
+        "pro is always on, served as https://<service>.<tailnet>.ts.net",
+        "dev runs on demand on the Pi's own tailnet name",
+        "Image tags are tested in dev, then copied into pro"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Secrets",
+      "items": [
+        "Pulled from GCP Secret Manager only on deploy",
+        "Written to a 0600 env file, never polled",
+        "Only Backrest receives them (B2, restic, ntfy)"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Guardrails",
+      "items": [
+        "Every container has a mem_limit",
+        "Ports bind to 127.0.0.1; only tailscaled exposes them",
+        "Backup failures alert through ntfy"
+      ]
+    }
+  ]
+}
