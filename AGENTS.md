@@ -41,6 +41,7 @@ This repository is a homelab setup for a Raspberry Pi with:
 - Example open: `restic restore timing out on large repo - open`
 
 ### Notes
+- Vaultwarden backup on 2026-10-28 timed out opening B2 during Backrest auto-unlock - caught up on 2026-10-29 at 08:40 UTC with direct restic backup `c8492535`, preserving Backrest's hostname/tags; independently verified the snapshot in B2. UI credentials were unavailable, so no Backrest backup operation was recorded; original timeout cause remains unconfirmed
 - Backrest UI download button failed for vaultwarden SQLite from latest snapshot while raw `restic dump` from the Backrest container works - caused by stale Backrest operation links indexed under old repo id `b2` after repo was renamed to `vaultwarden`; use fresh index/links or keep repo id stable
 - vaultwarden snapshot `7f17b302` looked empty because it is a dev backup and its SQLite tables have 0 user/cipher rows; pro snapshots hold the real vault data
 - GCP Secret Manager showed ~20k requests/month because secrets were refreshed hourly - secrets are now fetched only at deploy time (`scripts/secrets.sh`), made a repo rule in `docs/security.md`/`AGENTS.md`
