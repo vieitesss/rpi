@@ -44,6 +44,27 @@ services:
       - 127.0.0.1:19040:3000
       - 127.0.0.1:12222:22
 
+  # Unofficial Supernote Private Cloud server (allenporter/supernote): the
+  # official images are amd64 only. Upstream publishes no image, so it is built
+  # here from the pinned tag. Defined whole in this overlay while it is dev
+  # only; the shared part moves to compose.yaml when it is promoted to pro.
+  supernote:
+    restart: unless-stopped
+    logging:
+      driver: local
+    image: rpi/supernote:0.24.0
+    build:
+      context: https://github.com/allenporter/supernote.git#0.24.0
+    mem_limit: 512m
+    environment:
+      SUPERNOTE_BASE_URL: https://${TAILNET_HOST:?}.${TAILNET_DOMAIN:?}:8060
+      SUPERNOTE_MCP_ENABLED: "false"
+    # The container runs as uid 1000 and keeps its database, blobs and config here.
+    volumes:
+      - ${RPI_DATA:?}/supernote:/data
+    ports:
+      - 127.0.0.1:19060:8080
+
   # One-off restic for `just dev-seed`; never started by `up`.
   restic:
     profiles: [seed]

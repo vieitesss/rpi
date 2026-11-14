@@ -28,6 +28,7 @@ dev=(
   "8011=19011" # tandem-backend
   "8020=19020" # home
   "8040=19040" # forgejo
+  "8060=19060" # supernote
 )
 for pair in "${dev[@]}"; do
   tailscale serve --bg --https="${pair%%=*}" "http://127.0.0.1:${pair#*=}"

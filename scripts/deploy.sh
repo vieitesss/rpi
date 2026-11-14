@@ -13,7 +13,7 @@ compose() { "$here/compose.sh" "$env" "$@"; }
 data=/srv/rpi/$env
 if [[ $env == dev ]]; then
   # Dev starts empty or from `just dev-seed`.
-  mkdir -p "$data"/{vaultwarden,tandem,forgejo}
+  mkdir -p "$data"/{vaultwarden,tandem,forgejo,supernote}
 else
   # Never let pro start on an empty dir that Docker created: a missing one
   # means the data was not put in place.
