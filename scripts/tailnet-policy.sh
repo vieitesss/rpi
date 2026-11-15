@@ -75,9 +75,17 @@ case $cmd in
       name=${pair%%=*}
       body=$(jq -n --arg name "svc:$name" --arg port "${pair#*=}" --arg tag "$(service_tag "$name")" \
         '{name: $name, comment: "rpi pro (docker compose), served by scripts/tailscale-serve.sh", ports: [$port], tags: [$tag]}')
-      call -X PUT -H 'Content-Type: application/json' -d "$body" "$api/services/svc:$name" |
-        jq -r '"\(.name) \(.addrs | join(" ")) \(.ports | join(","))"'
+      # One refused Service must not block the rest, and the API explains a
+      # refusal only in the response body.
+      if reply=$(curl -sS --fail-with-body -H @"$auth" -X PUT -H 'Content-Type: application/json' \
+        -d "$body" "$api/services/svc:$name"); then
+        jq -r '"\(.name) \(.addrs | join(" ")) \(.ports | join(","))"' <<<"$reply"
+      else
+        echo "svc:$name failed: $reply" >&2
+        failed=1
+      fi
     done
+    exit "${failed:-0}"
     ;;
   *)
     echo "unknown command: $cmd" >&2
