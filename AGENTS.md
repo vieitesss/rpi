@@ -55,3 +55,4 @@ This repository is a homelab setup for a Raspberry Pi with:
 - cutover copy made `/srv/rpi/pro/backrest` itself 0700 root, so `just deploy pro` (run as the deploy user) could not see `backrest/config` and refused to start - chmod 755 on the parent only; `config/` and `data/` stay 0700 root
 - after the cutover, old k8s operator proxy devices showed green in the admin console while the pro apps behind them were scaled to 0 - expected during the gap; replaced by host-served Tailscale Services (operator and `ts-pro-*` proxies scaled to 0, old devices deleted)
 - Tailscale Service URLs timed out (curl 000) for ~1 minute right after `tailscale serve` while each Service's first TLS cert was issued - transient, all 200 on retry
+- after a reboot paseito and nexo reported the Pi unreachable while its apps worked, because the Paseo daemon and tmux server had been started by hand and lingering was off - added `system/user/` units for both, enabled with linger

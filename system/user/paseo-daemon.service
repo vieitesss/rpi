@@ -1,0 +1,15 @@
+[Unit]
+Description=Paseo daemon
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+# zsh -l does not read .zshrc, where the pi-node PATH is set; bump the node
+# version here when it changes.
+Environment=PATH=%h/.local/bin:%h/.local/share/pi-node/node-v22.22.3-linux-arm64/bin:%h/.cargo/bin:%h/.fzf/bin:/usr/local/bin:/usr/bin:/bin
+ExecStart=/usr/bin/zsh -lc "exec paseo daemon run"
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target

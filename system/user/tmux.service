@@ -1,0 +1,13 @@
+[Unit]
+Description=tmux server with a main session
+
+[Service]
+Type=forking
+# Same PATH as paseo-daemon.service, so shells and agents in tmux find node.
+Environment=PATH=%h/.local/bin:%h/.local/share/pi-node/node-v22.22.3-linux-arm64/bin:%h/.cargo/bin:%h/.fzf/bin:/usr/local/bin:/usr/bin:/bin
+ExecStart=/usr/bin/zsh -lc "exec tmux new-session -d -s main"
+ExecStop=/usr/bin/tmux kill-server
+RemainAfterExit=yes
+
+[Install]
+WantedBy=default.target

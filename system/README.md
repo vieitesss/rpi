@@ -1,7 +1,8 @@
 # System Configuration
 
 Host-level configuration for the Pi: automatic updates, the boot
-notification, and the memory guards that keep it responsive.
+notification, the memory guards that keep it responsive, and the user services
+that remote tools connect to.
 
 ## Directory Contents
 
@@ -17,6 +18,16 @@ notification, and the memory guards that keep it responsive.
   zram swap, instead of letting the Pi thrash until it stops responding.
   Containers are also capped by their `mem_limit`, and agents started over SSH
   should run under `just agent <command>` (a memory-capped systemd scope).
+
+### `user/` (installed to `~/.config/systemd/user/`)
+- **`paseo-daemon.service`**: runs the Paseo daemon (`127.0.0.1:6767`) that
+  paseito reaches over an SSH tunnel.
+- **`tmux.service`**: starts the tmux server with a `main` session, so nexo
+  lists the Pi as a tmux remote.
+
+Both run with lingering on, so they start at boot without a login. They set
+`PATH` themselves because `zsh -l` does not read `.zshrc`, where the pi-node
+path lives; update the node version in both units when it changes.
 
 ## Installation & Usage
 
@@ -55,3 +66,17 @@ sudo sed -i "s/<user>/$USER/g" /etc/systemd/system/notify.service
 sudo systemctl daemon-reload
 sudo systemctl enable --now notify.service
 ```
+
+### 5. Enable the User Services
+
+```bash
+mkdir -p ~/.config/systemd/user
+cp user/*.service ~/.config/systemd/user/
+sudo loginctl enable-linger "$USER"
+systemctl --user daemon-reload
+systemctl --user enable --now paseo-daemon.service tmux.service
+```
+
+Manage the daemon with `systemctl --user restart paseo-daemon` from then on;
+a `paseo daemon start` alongside the unit starts a second daemon on the same
+port. Stopping `tmux.service` kills the whole tmux server, sessions included.
