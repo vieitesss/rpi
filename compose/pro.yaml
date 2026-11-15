@@ -44,6 +44,16 @@ services:
       - 127.0.0.1:9040:3000
       - 127.0.0.1:2222:22
 
+  # Built from the upstream tag: keep the image tag and the build ref equal.
+  supernote:
+    image: rpi/supernote:0.24.0
+    build:
+      context: https://github.com/allenporter/supernote.git#0.24.0
+    environment:
+      SUPERNOTE_BASE_URL: https://supernote.${TAILNET_DOMAIN:?}
+    ports:
+      - 127.0.0.1:9060:8080
+
   glances:
     <<: *service
     image: nicolargo/glances:4.5.5-full
@@ -76,5 +86,6 @@ services:
       - ${RPI_DATA:?}/vaultwarden:/backup/vaultwarden:ro
       - ${RPI_DATA:?}/tandem:/backup/tandem:ro
       - ${RPI_DATA:?}/forgejo:/backup/forgejo:ro
+      - ${RPI_DATA:?}/supernote:/backup/supernote:ro
     ports:
       - 127.0.0.1:9050:9898

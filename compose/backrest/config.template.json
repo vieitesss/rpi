@@ -142,6 +142,53 @@
           }
         }
       ]
+    },
+    {
+      "id": "supernote",
+      "uri": "b2:${B2_BUCKET}:/kubernetes-pvcs/pro/supernote",
+      "guid": "9b716baec98792a131de65fefa6914ee53a3f59c339ff261726d4286798a2f92",
+      "env": [
+        "RESTIC_PASSWORD=${RPI_RESTIC_PASSWORD}"
+      ],
+      "autoUnlock": true,
+      "prunePolicy": {
+        "schedule": {
+          "cron": "0 2 * * 0",
+          "clock": "CLOCK_UTC"
+        },
+        "maxUnusedPercent": 10
+      },
+      "checkPolicy": {
+        "schedule": {
+          "cron": "0 3 1 * *",
+          "clock": "CLOCK_UTC"
+        },
+        "structureOnly": true
+      },
+      "forgetPolicy": {
+        "schedule": {
+          "cron": "0 1 * * *",
+          "clock": "CLOCK_UTC"
+        },
+        "retention": {
+          "policyTimeBucketed": {
+            "daily": 7,
+            "weekly": 4,
+            "monthly": 6,
+            "yearly": 1
+          }
+        }
+      },
+      "hooks": [
+        {
+          "conditions": [
+            "CONDITION_ANY_ERROR"
+          ],
+          "actionCommand": {
+            "command": "curl -fsS -m 30 -H 'Title: Backrest {{ .Repo.Id }} failed' -H 'Priority: high' -H 'Tags: warning' -d {{ .ShellEscape .Summary }} \"https://ntfy.sh/${NTFY_TOPIC}\""
+          }
+        }
+      ]
     }
   ],
   "plans": [
@@ -175,6 +222,17 @@
       ],
       "schedule": {
         "cron": "45 23 * * *",
+        "clock": "CLOCK_UTC"
+      }
+    },
+    {
+      "id": "supernote",
+      "repo": "supernote",
+      "paths": [
+        "/backup/supernote"
+      ],
+      "schedule": {
+        "cron": "30 23 * * *",
         "clock": "CLOCK_UTC"
       }
     }

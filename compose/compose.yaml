@@ -65,3 +65,15 @@ services:
       FORGEJO__service__DISABLE_REGISTRATION: "true"
     volumes:
       - ${RPI_DATA:?}/forgejo:/data
+
+  # Unofficial Supernote Private Cloud server (allenporter/supernote): the
+  # official images are amd64 only. Upstream publishes no image, so each
+  # overlay builds it from the tag it pins.
+  supernote:
+    <<: *service
+    mem_limit: 512m
+    environment:
+      SUPERNOTE_MCP_ENABLED: "false"
+    # The container runs as uid 1000 and keeps its database, blobs and config here.
+    volumes:
+      - ${RPI_DATA:?}/supernote:/data

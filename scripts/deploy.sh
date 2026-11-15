@@ -17,7 +17,7 @@ if [[ $env == dev ]]; then
 else
   # Never let pro start on an empty dir that Docker created: a missing one
   # means the data was not put in place.
-  for dir in vaultwarden tandem forgejo backrest/config backrest/data backrest/cache; do
+  for dir in vaultwarden tandem forgejo supernote backrest/config backrest/data backrest/cache; do
     [[ -d $data/$dir ]] || { echo "missing $data/$dir" >&2; exit 1; }
   done
   "$here/secrets.sh" "$RPI_SECRETS"

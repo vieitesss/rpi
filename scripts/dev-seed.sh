@@ -3,10 +3,10 @@
 # The snapshot defaults to the latest; dev must be down.
 set -euo pipefail
 
-app=${1:?usage: dev-seed.sh <vaultwarden|tandem|forgejo> [snapshot]}
+app=${1:?usage: dev-seed.sh <vaultwarden|tandem|forgejo|supernote> [snapshot]}
 snapshot=${2:-latest}
 case $app in
-  vaultwarden | tandem | forgejo) ;;
+  vaultwarden | tandem | forgejo | supernote) ;;
   *) echo "unknown app: $app" >&2; exit 1 ;;
 esac
 

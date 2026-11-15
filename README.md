@@ -40,6 +40,7 @@
 | [Vaultwarden](https://github.com/dani-garcia/vaultwarden) | Bitwarden-compatible password manager | `https://vaultwarden.<tailnet>.ts.net` |
 | [Tandem](https://github.com/vieitesss/tandem)    | Expense-splitting app (web + API)  | `https://tandem.<tailnet>.ts.net`        |
 | [Forgejo](https://forgejo.org)                   | Git forge (HTTPS + SSH)            | `https://forgejo.<tailnet>.ts.net`       |
+| [Supernote](https://github.com/allenporter/supernote) | Supernote Private Cloud sync server | `https://supernote.<tailnet>.ts.net` |
 | [Glances](https://nicolargo.github.io/glances/)  | Host monitoring                    | `https://glances.<tailnet>.ts.net`       |
 | [Backrest](https://github.com/garethgeorge/backrest) | restic backups to Backblaze B2 | `https://backrest.<tailnet>.ts.net`      |
 

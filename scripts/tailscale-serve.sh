@@ -15,6 +15,7 @@ pro=(
   glances=9030
   forgejo=9040
   backrest=9050
+  supernote=9060
 )
 for pair in "${pro[@]}"; do
   tailscale serve --service="svc:${pair%%=*}" --https=443 "http://127.0.0.1:${pair#*=}"
