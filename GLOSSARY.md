@@ -20,6 +20,21 @@ so it costs nothing while idle. Its data persists between runs and is only
 replaced by production data on explicit request.
 _Avoid_: Stage, tier, namespace
 
+**Source-tracked service**:
+A Service whose own code is rebuilt from the upstream default branch by a
+timer, so it has no pinned version; only the image it runs in is pinned.
+_Avoid_: Rolling service, live app
+
+**Build**:
+One commit's compiled server and editor assets, named by that commit's sha and
+kept after the next one lands, so a swap can be undone.
+_Avoid_: Artifact, release
+
+**Mirror clone**:
+The deploy-owned copy of a Source-tracked service's repository. Never a working
+clone, and safe to reset to the upstream default branch.
+_Avoid_: Working clone, checkout
+
 ## Secrets
 
 **Secret Manager**:
