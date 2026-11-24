@@ -1,0 +1,10 @@
+[Unit]
+Description=Advance esbozo to origin/main every 15 minutes
+
+[Timer]
+OnBootSec=5min
+OnUnitActiveSec=15min
+Persistent=false
+
+[Install]
+WantedBy=timers.target

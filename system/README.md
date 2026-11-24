@@ -13,6 +13,9 @@ that remote tools connect to.
 - **`notify.service`**: on boot, waits for the pro containers and sends an
   ntfy notification with how many are running (`scripts/notify.sh`, topic
   `NTFY` from the untracked `.env`, see `.env.example`).
+- **`esbozo-update.timer`**, **`esbozo-update.service`**: advances esbozo to
+  `origin/main` every 15 minutes, keeps the last 3 Builds, and restarts only
+  the esbozo container.
 - **`-.slice.d/10-oomd.conf`**, **`user@.service.d/10-oomd.conf`**:
   systemd-oomd kills the cgroup behind sustained memory pressure or a full
   zram swap, instead of letting the Pi thrash until it stops responding.
@@ -67,7 +70,21 @@ sudo systemctl daemon-reload
 sudo systemctl enable --now notify.service
 ```
 
-### 5. Enable the User Services
+### 5. Enable the esbozo Updater
+
+Run the first build from the checkout before `just deploy pro`, because `pro`
+refuses to start without `dist/current` (root is needed to write root-owned
+`/srv/rpi/pro/esbozo` and drive docker; `just esbozo-build` is equivalent):
+
+```bash
+sudo ./scripts/esbozo-build.sh
+sudo sed -i "s/<user>/$USER/g" /etc/systemd/system/esbozo-update.service /etc/systemd/system/esbozo-update.timer
+sudo systemctl daemon-reload
+sudo systemctl enable --now esbozo-update.timer
+systemctl list-timers esbozo-update
+```
+
+### 6. Enable the User Services
 
 ```bash
 mkdir -p ~/.config/systemd/user

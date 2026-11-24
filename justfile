@@ -38,3 +38,7 @@ shutdown:
 # Run a command (e.g. an agent) under a memory cap; AGENT_MEMORY_MAX overrides 2G
 agent *cmd:
     ./scripts/agent.sh "$@"
+
+# Advance esbozo to origin/main (build, guard, swap, prune old Builds)
+esbozo-build *args:
+    sudo ./scripts/esbozo-build.sh "$@"

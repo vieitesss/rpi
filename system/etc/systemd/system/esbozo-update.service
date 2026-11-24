@@ -1,0 +1,16 @@
+[Unit]
+Description=Rebuild and update esbozo from origin/main
+After=docker.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/home/<user>/rpi
+Environment=PATH=/home/<user>/.local/share/pi-node/current/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+ExecStart=/home/<user>/rpi/scripts/esbozo-build.sh
+RemainAfterExit=no
+# Caps this unit's own tree (git, docker, curl, notify) at 512M; the script's
+# systemd-run --scope runs as a sibling in system.slice and caps the build at 512M.
+MemoryMax=512M
+MemorySwapMax=256M
+TimeoutStartSec=900
