@@ -87,5 +87,20 @@ services:
       - ${RPI_DATA:?}/tandem:/backup/tandem:ro
       - ${RPI_DATA:?}/forgejo:/backup/forgejo:ro
       - ${RPI_DATA:?}/supernote:/backup/supernote:ro
+      - ${RPI_DATA:?}/esbozo/scenes:/backup/esbozo:ro
     ports:
       - 127.0.0.1:9050:9898
+
+  # current is a symlink that scripts/esbozo-build.sh repoints to the latest
+  # Build; the container is restarted to pick it up.
+  esbozo:
+    <<: *service
+    image: node:22.22.3-slim
+    mem_limit: 128m
+    entrypoint: ["node"]
+    command: ["/app/versions/current/cli.js", "serve", "/scenes", "--host", "0.0.0.0"]
+    volumes:
+      - ${RPI_DATA:?}/esbozo/dist:/app/versions:ro
+      - ${RPI_DATA:?}/esbozo/scenes:/scenes
+    ports:
+      - 127.0.0.1:9070:4320

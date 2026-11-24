@@ -189,6 +189,53 @@
           }
         }
       ]
+    },
+    {
+      "id": "esbozo",
+      "uri": "b2:${B2_BUCKET}:/kubernetes-pvcs/pro/esbozo",
+      "guid": "6fbb3c37610ea0094ee84021eb5f975cfa4baf5fb32d28bf9a6e6f5ef3999c16",
+      "env": [
+        "RESTIC_PASSWORD=${RPI_RESTIC_PASSWORD}"
+      ],
+      "autoUnlock": true,
+      "prunePolicy": {
+        "schedule": {
+          "cron": "0 2 * * 0",
+          "clock": "CLOCK_UTC"
+        },
+        "maxUnusedPercent": 10
+      },
+      "checkPolicy": {
+        "schedule": {
+          "cron": "0 3 1 * *",
+          "clock": "CLOCK_UTC"
+        },
+        "structureOnly": true
+      },
+      "forgetPolicy": {
+        "schedule": {
+          "cron": "0 1 * * *",
+          "clock": "CLOCK_UTC"
+        },
+        "retention": {
+          "policyTimeBucketed": {
+            "daily": 7,
+            "weekly": 4,
+            "monthly": 6,
+            "yearly": 1
+          }
+        }
+      },
+      "hooks": [
+        {
+          "conditions": [
+            "CONDITION_ANY_ERROR"
+          ],
+          "actionCommand": {
+            "command": "curl -fsS -m 30 -H 'Title: Backrest {{ .Repo.Id }} failed' -H 'Priority: high' -H 'Tags: warning' -d {{ .ShellEscape .Summary }} \"https://ntfy.sh/${NTFY_TOPIC}\""
+          }
+        }
+      ]
     }
   ],
   "plans": [
@@ -233,6 +280,17 @@
       ],
       "schedule": {
         "cron": "30 23 * * *",
+        "clock": "CLOCK_UTC"
+      }
+    },
+    {
+      "id": "esbozo",
+      "repo": "esbozo",
+      "paths": [
+        "/backup/esbozo"
+      ],
+      "schedule": {
+        "cron": "0 0 * * *",
         "clock": "CLOCK_UTC"
       }
     }

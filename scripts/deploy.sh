@@ -20,6 +20,11 @@ else
   for dir in vaultwarden tandem forgejo supernote backrest/config backrest/data backrest/cache; do
     [[ -d $data/$dir ]] || { echo "missing $data/$dir" >&2; exit 1; }
   done
+  for dir in esbozo/scenes esbozo/dist; do
+    [[ -d $data/$dir ]] || { echo "missing $data/$dir (run 'just esbozo-build' first)" >&2; exit 1; }
+  done
+  [[ -e $data/esbozo/dist/current/cli.js ]] \
+    || { echo "missing $data/esbozo/dist/current/cli.js (run 'just esbozo-build' first)" >&2; exit 1; }
   "$here/secrets.sh" "$RPI_SECRETS"
 
   # Backrest owns config.json; merge only the git-tracked repos and plans in.

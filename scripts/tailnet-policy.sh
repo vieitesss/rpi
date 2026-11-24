@@ -22,6 +22,7 @@ services=(
   forgejo-git=tcp:22
   backrest=tcp:443
   supernote=tcp:443
+  esbozo=tcp:443
 )
 service_tag() {
   case $1 in

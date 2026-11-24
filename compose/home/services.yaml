@@ -17,3 +17,6 @@
     - Supernote:
         href: https://supernote.{{HOMEPAGE_VAR_TAILNET_DOMAIN}}
         icon: mdi-notebook-edit
+    - Esbozo:
+        href: https://esbozo.{{HOMEPAGE_VAR_TAILNET_DOMAIN}}
+        icon: mdi-draw
