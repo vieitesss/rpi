@@ -1,10 +1,25 @@
 #!/usr/bin/env bash
-# Boot notification (system/etc/systemd/system/notify.service): waits for the
-# pro containers Docker restarts on boot, then reports how many are running.
+# Send a notification to the NTFY topic, or (with no args) wait for pro
+# containers on boot (system/etc/systemd/system/notify.service) and report status.
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
 source .env
+
+send() {
+  local title=$1 tags=$2 body=$3
+  [[ -n "${NTFY:-}" ]] || return 0
+  curl -fsS \
+    -H "Title: $title" \
+    -H "Tags: $tags" \
+    -d "$body" \
+    "https://ntfy.sh/${NTFY}" >/dev/null
+}
+
+if (($#)); then
+  send "$(hostname)" "information_source" "$*"
+  exit 0
+fi
 
 count() { docker ps -q --filter label=com.docker.compose.project=rpi-pro "$@" | wc -l; }
 
@@ -16,10 +31,6 @@ for _ in $(seq 36); do
   sleep 5
 done
 
-if [[ -n "${NTFY:-}" ]]; then
-  curl -fsS \
-    -H "Title: Raspberry Pi booted" \
-    -H "Tags: $( ((running >= total)) && echo white_check_mark || echo warning)" \
-    -d "$(hostname): $running/$total pro containers running" \
-    "https://ntfy.sh/${NTFY}" >/dev/null
-fi
+send "Raspberry Pi booted" \
+  "$( ((running >= total)) && echo white_check_mark || echo warning)" \
+  "$(hostname): $running/$total pro containers running"
