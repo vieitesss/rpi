@@ -41,6 +41,8 @@ This repository is a homelab setup for a Raspberry Pi with:
 - Example open: `restic restore timing out on large repo - open`
 
 ### Notes
+- Supernote responds with HTTP 200 on localhost and has a Tailscale Serve route, but Mac and Supernote clients cannot access it; the Pi's internal DNS query returns RCodeNameError (Home also returns NXDOMAIN from the Pi) - live service registration, host approval and access grant need verification in the Tailscale admin console; API token unavailable in the agent session; open
+- Home did not show Supernote despite the checked-out services.yaml containing it, because its single-file bind mount still held the old inode - verified the link through the dev services API, then force-recreated only pro Home; the pro services API now includes Supernote. Recreate Home after atomic replacements of mounted config files
 - Vaultwarden backup on 2026-10-28 timed out opening B2 during Backrest auto-unlock - caught up on 2026-10-29 at 08:40 UTC with direct restic backup `c8492535`, preserving Backrest's hostname/tags; independently verified the snapshot in B2. UI credentials were unavailable, so no Backrest backup operation was recorded; original timeout cause remains unconfirmed
 - Backrest UI download button failed for vaultwarden SQLite from latest snapshot while raw `restic dump` from the Backrest container works - caused by stale Backrest operation links indexed under old repo id `b2` after repo was renamed to `vaultwarden`; use fresh index/links or keep repo id stable
 - vaultwarden snapshot `7f17b302` looked empty because it is a dev backup and its SQLite tables have 0 user/cipher rows; pro snapshots hold the real vault data
@@ -56,3 +58,7 @@ This repository is a homelab setup for a Raspberry Pi with:
 - after the cutover, old k8s operator proxy devices showed green in the admin console while the pro apps behind them were scaled to 0 - expected during the gap; replaced by host-served Tailscale Services (operator and `ts-pro-*` proxies scaled to 0, old devices deleted)
 - Tailscale Service URLs timed out (curl 000) for ~1 minute right after `tailscale serve` while each Service's first TLS cert was issued - transient, all 200 on retry
 - after a reboot paseito and nexo reported the Pi unreachable while its apps worked, because the Paseo daemon and tmux server had been started by hand and lingering was off - added `system/user/` units for both, enabled with linger
+- `just esbozo-build` treated a non-numeric `ESBOZO_KEEP` as zero and pruned every Build except `current`, exiting 0 - the script now rejects anything that is not a run of digits and deletes nothing on that path
+- a killed build left `.<sha>.tmp.<pid>` stage directories behind forever - stale stage dirs are now reaped on the next run, and a directory whose owning PID is still alive is kept
+- the first run created `/srv/rpi/pro/esbozo/scenes` as root, so the esbozo container could not write Scenes - `scripts/esbozo-build.sh` now creates it with `ESBOZO_SCENES_UID:ESBOZO_SCENES_GID` (default `1000:1000`) when it is missing and never touches an existing directory
+- a systemd unit comment claimed the build's `systemd-run --scope` nests inside the unit's cgroup - it does not: without `--slice=` the scope is a sibling in `system.slice`, so both caps are separate and equal
