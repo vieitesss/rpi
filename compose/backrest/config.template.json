@@ -193,7 +193,7 @@
     {
       "id": "esbozo",
       "uri": "b2:${B2_BUCKET}:/kubernetes-pvcs/pro/esbozo",
-      "guid": "6fbb3c37610ea0094ee84021eb5f975cfa4baf5fb32d28bf9a6e6f5ef3999c16",
+      "guid": "220b2bdc87cab6d03f5480957cc1d929942ff3071fdd80426c068b098b8c6821",
       "env": [
         "RESTIC_PASSWORD=${RPI_RESTIC_PASSWORD}"
       ],
